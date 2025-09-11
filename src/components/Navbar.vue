@@ -184,6 +184,15 @@
                   </div>
                 </router-link>
 
+                <router-link to="/ferry-piers"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-ship w-4 text-indigo-500"></i>
+                  <div>
+                    <div class="font-medium">渡轮码头</div>
+                    <div class="text-xs text-gray-500">六大码头位置</div>
+                  </div>
+                </router-link>
+
                 <router-link to="/schools"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-graduation-cap w-4 text-green-500"></i>
@@ -432,6 +441,10 @@
           <router-link to="/wifi" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-wifi w-4 text-blue-500 mr-2"></i>WiFi热点
+          </router-link>
+          <router-link to="/ferry-piers" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-ship w-4 text-indigo-500 mr-2"></i>渡轮码头
           </router-link>
           <router-link to="/schools" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">

@@ -132,6 +132,11 @@ const routes = [
     name: "WaterDispensers",
     component: () => import("../views/WaterDispensers.vue"),
   },
+  {
+    path: "/ferry-piers",
+    name: "FerryPiers",
+    component: () => import("../views/FerryPiers.vue"),
+  },
 ];
 
 const router = createRouter({
