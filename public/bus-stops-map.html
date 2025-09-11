@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>香港巴士站点地图</title>
+    <script src="./OpenLayers.js"></script>
+    <script src="./config.js"></script>
+    <script src="./map-styles.js"></script>
+    <style>
+      #mapdiv {
+        width: 100%;
+        height: 100vh;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      .olPopup {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .olPopupContent {
+        background: transparent !important;
+        overflow: visible !important;
+      }
+      .popup {
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        padding: 10px 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        position: relative;
+        max-width: 280px;
+      }
+      .popup h4 {
+        margin: 0 0 8px 0;
+        color: #111827;
+        font-size: 14px;
+      }
+      .popup p {
+        margin: 4px 0;
+        color: #374151;
+        font-size: 12px;
+      }
+      .popup .close {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 16px;
+        line-height: 16px;
+        padding: 2px;
+        border-radius: 6px;
+      }
+      .popup .close:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #111827;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mapdiv"></div>
+
+    <script>
+      let map;
+      let markersLayer;
+      let currentPopup = null;
+
+      // 初始化地图
+      function initMap() {
+        map = new OpenLayers.Map("mapdiv");
+
+        // 使用通用样式初始化，默认为维基地图
+        initMapWithStyle(map, "wikimedia");
+
+        // 创建标记层
+        markersLayer = new OpenLayers.Layer.Markers("Bus Stops");
+        map.addLayer(markersLayer);
+
+        // 设置初始视图为香港
+        var hongKongCenter = new OpenLayers.LonLat(114.1694, 22.3193).transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          map.getProjectionObject()
+        );
+
+        map.setCenter(hongKongCenter, 12);
+
+        // 创建样式选择器
+        createMapStyleSelector();
+
+        // 处理URL参数
+        handleUrlParams();
+      }
+
+      // 加载巴士站点数据
+      async function loadBusStops(route, direction, serviceType) {
+        try {
+          const url = `${
+            window.APP_CONFIG.API_BASE_URL
+          }/bus/route-stop/${encodeURIComponent(route)}/${encodeURIComponent(
+            direction
+          )}/${encodeURIComponent(serviceType)}`;
+          const response = await fetch(url);
+          const json = await response.json();
+          const stops = json && json.data ? json.data : [];
+
+          // 添加标记
+          stops.forEach((stop) => {
+            addStopMarker(stop);
+          });
+
+          // 自动缩放到所有标记
+          fitToMarkers();
+        } catch (error) {
+          console.error("加载巴士站点失败:", error);
+        }
+      }
+
+      // 添加巴士站点标记
+      function addStopMarker(routeStop) {
+        const info = routeStop.stop_info;
+        if (!info || !info.lat || !info.longitude) return;
+
+        const lonLat = new OpenLayers.LonLat(
+          parseFloat(info.longitude), // 注意顺序：longitude, lat
+          parseFloat(info.lat)
+        ).transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          map.getProjectionObject()
+        );
+
+        // 创建自定义标记图标（显眼的巴士站图标）
+        var size = new OpenLayers.Size(40, 40);
+        var offset = new OpenLayers.Pixel(-(size.w / 2), -size.h);
+        var icon = new OpenLayers.Icon(
+          "data:image/svg+xml;base64," +
+            btoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.2)"/>
+                    <circle cx="12" cy="12" r="10" fill="#FF6B35" stroke="white" stroke-width="2"/>
+                    <rect x="6" y="8" width="12" height="8" rx="1" fill="white"/>
+                    <rect x="7" y="9" width="2" height="2" fill="#FF6B35"/>
+                    <rect x="9.5" y="9" width="2" height="2" fill="#FF6B35"/>
+                    <rect x="12" y="9" width="2" height="2" fill="#FF6B35"/>
+                    <rect x="14.5" y="9" width="2" height="2" fill="#FF6B35"/>
+                    <circle cx="8" cy="15" r="1" fill="#FF6B35"/>
+                    <circle cx="16" cy="15" r="1" fill="#FF6B35"/>
+                </svg>
+            `),
+          size,
+          offset
+        );
+
+        const marker = new OpenLayers.Marker(lonLat, icon);
+
+        // 添加点击事件
+        marker.events.register("mousedown", marker, function (evt) {
+          showStopPopup(info, lonLat);
+          OpenLayers.Event.stop(evt);
+        });
+
+        markersLayer.addMarker(marker);
+      }
+
+      // 显示巴士站点信息弹窗
+      function showStopPopup(info, lonLat) {
+        if (currentPopup) {
+          try {
+            map.removePopup(currentPopup);
+            currentPopup.destroy();
+          } catch (_) {}
+          currentPopup = null;
+        }
+        if (map.popups.length > 0) {
+          try {
+            map.removePopup(map.popups[0]);
+          } catch (_) {}
+        }
+
+        const html = `
+          <div class="popup">
+            <a href="#" id="bus-close" class="close" aria-label="close">×</a>
+            <h4>${info.name_tc || ""}</h4>
+            <p>${info.name_en || ""}</p>
+            <p><strong>ID:</strong> ${info.stop || ""}</p>
+            <p><strong>坐标:</strong> ${info.lat}, ${info.longitude}</p>
+          </div>`;
+
+        const popup = new OpenLayers.Popup(
+          "busStopPopup",
+          lonLat,
+          new OpenLayers.Size(240, 1),
+          html,
+          false
+        );
+        popup.autoSize = true;
+        map.addPopup(popup);
+        currentPopup = popup;
+        setTimeout(() => {
+          const btn = document.getElementById("bus-close");
+          if (btn)
+            btn.onclick = (e) => {
+              e.preventDefault();
+              if (currentPopup) {
+                try {
+                  map.removePopup(currentPopup);
+                  currentPopup.destroy();
+                } catch (_) {}
+                currentPopup = null;
+              }
+            };
+        }, 0);
+      }
+
+      // 自动缩放到所有标记
+      function fitToMarkers() {
+        if (!markersLayer || markersLayer.markers.length === 0) return;
+
+        try {
+          // 收集所有有效的经纬度坐标
+          const validMarkers = markersLayer.markers.filter(
+            (marker) => marker.lonlat
+          );
+
+          if (validMarkers.length === 0) return;
+
+          if (validMarkers.length === 1) {
+            // 只有一个标记时，居中并设置合适的缩放级别
+            map.setCenter(validMarkers[0].lonlat, 15);
+            return;
+          }
+
+          // 多个标记时，计算边界并缩放
+          const bounds = new OpenLayers.Bounds();
+          validMarkers.forEach((marker) => {
+            bounds.extend(marker.lonlat);
+          });
+
+          // 检查边界是否有效（避免 isEmpty 方法兼容性问题）
+          if (
+            bounds.left !== null &&
+            bounds.bottom !== null &&
+            bounds.right !== null &&
+            bounds.top !== null &&
+            (bounds.right !== bounds.left || bounds.top !== bounds.bottom)
+          ) {
+            map.zoomToExtent(bounds);
+
+            // 如果缩放级别太高，限制最大缩放
+            if (map.getZoom() > 17) {
+              map.zoomTo(17);
+            }
+          } else {
+            // 备选方案：缩放到中间站点
+            const middleIndex = Math.floor(validMarkers.length / 2);
+            map.setCenter(validMarkers[middleIndex].lonlat, 14);
+          }
+        } catch (error) {
+          console.error("自动缩放失败:", error);
+          // 最后的备选方案：缩放到中间站点
+          if (markersLayer.markers.length > 0) {
+            const validMarkers = markersLayer.markers.filter(
+              (marker) => marker.lonlat
+            );
+            if (validMarkers.length > 0) {
+              const middleIndex = Math.floor(validMarkers.length / 2);
+              map.setCenter(validMarkers[middleIndex].lonlat, 14);
+            }
+          }
+        }
+      }
+
+      // URL参数处理
+      function handleUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const route = urlParams.get("route");
+        const direction = urlParams.get("direction"); // O / I
+        const serviceType = urlParams.get("serviceType");
+
+        if (route && direction && serviceType) {
+          loadBusStops(route, direction, serviceType).then(() => {
+            // 可选：单站高亮
+            const lat = urlParams.get("lat");
+            const lng = urlParams.get("lng");
+            const name = urlParams.get("name");
+
+            if (lat && lng) {
+              const targetLonLat = new OpenLayers.LonLat(
+                parseFloat(lng),
+                parseFloat(lat)
+              ).transform(
+                new OpenLayers.Projection("EPSG:4326"),
+                map.getProjectionObject()
+              );
+
+              map.setCenter(targetLonLat, 16);
+
+              // // 为特定站点创建高亮标记
+              // var size = new OpenLayers.Size(32, 32);
+              // var offset = new OpenLayers.Pixel(-(size.w / 2), -size.h);
+              // var highlightIcon = new OpenLayers.Icon(
+              //   "data:image/svg+xml;base64;" +
+              //     btoa(`
+              //       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+              //           <circle cx="16" cy="16" r="15" fill="rgba(251, 191, 36, 0.3)" stroke="rgba(251, 191, 36, 0.6)" stroke-width="2">
+              //               <animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite"/>
+              //               <animate attributeName="opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite"/>
+              //           </circle>
+              //           <circle cx="16" cy="16" r="12" fill="#FBB040" stroke="white" stroke-width="3"/>
+              //           <rect x="8" y="10" width="16" height="10" rx="1.5" fill="white"/>
+              //           <rect x="9" y="11.5" width="2.5" height="2.5" fill="#FBB040"/>
+              //           <rect x="12" y="11.5" width="2.5" height="2.5" fill="#FBB040"/>
+              //           <rect x="15" y="11.5" width="2.5" height="2.5" fill="#FBB040"/>
+              //           <rect x="18" y="11.5" width="2.5" height="2.5" fill="#FBB040"/>
+              //           <circle cx="11" cy="18.5" r="1.5" fill="#FBB040"/>
+              //           <circle cx="21" cy="18.5" r="1.5" fill="#FBB040"/>
+              //           <polygon points="16,6 17,10 21,10 18,13 19,17 16,15 13,17 14,13 11,10 15,10" fill="white" opacity="0.9"/>
+              //       </svg>
+              //     `),
+              //   size,
+              //   offset
+              // );
+
+              // const highlightMarker = new OpenLayers.Marker(
+              //   targetLonLat,
+              //   highlightIcon
+              // );
+              // markersLayer.addMarker(highlightMarker);
+
+              // 显示站点名称弹窗
+              if (name) {
+                setTimeout(() => {
+                  if (currentPopup) {
+                    try {
+                      map.removePopup(currentPopup);
+                      currentPopup.destroy();
+                    } catch (_) {}
+                    currentPopup = null;
+                  }
+                  const popup = new OpenLayers.Popup(
+                    "highlightPopup",
+                    targetLonLat,
+                    new OpenLayers.Size(220, 1),
+                    `<div class="popup"><h4>${decodeURIComponent(
+                      name
+                    )}</h4></div>`,
+                    false
+                  );
+                  popup.autoSize = true;
+                  map.addPopup(popup);
+                  currentPopup = popup;
+                }, 500);
+              }
+            }
+          });
+        }
+      }
+
+      // 页面加载完成后初始化
+      window.onload = function () {
+        initMap();
+      };
+    </script>
+  </body>
+</html>

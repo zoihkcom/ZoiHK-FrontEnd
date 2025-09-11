@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>香港地铁线路图</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          sans-serif;
+        background-color: #ffffff;
+        overflow: hidden;
+        /* 优化渲染性能 */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+      }
+
+      #subway-map {
+        /* 优化交互性能 */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        will-change: transform;
+        /* 确保触摸事件正常工作 */
+        touch-action: manipulation;
+      }
+
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-size: 16px;
+        color: #666;
+      }
+
+      .loading::after {
+        content: "";
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-size: 16px;
+        color: #e74c3c;
+        text-align: center;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading" class="loading">正在加载香港地铁图</div>
+    <div id="error" class="error" style="display: none">
+      香港地铁图加载失败，请刷新页面重试
+    </div>
+    <div id="subway-map"></div>
+
+    <script>
+      // 地铁图相关配置
+      const API_KEY = "2be9c7d6d620fe19941398b0ed87cd48";
+      let subwayMap = null;
+
+      // 隐藏加载提示
+      function hideLoading() {
+        const loading = document.getElementById("loading");
+        if (loading) {
+          loading.style.display = "none";
+        }
+      }
+
+      // 显示错误信息
+      function showError() {
+        hideLoading();
+        const error = document.getElementById("error");
+        if (error) {
+          error.style.display = "flex";
+        }
+      }
+
+      // 初始化地铁图
+      function initSubwayMap() {
+        try {
+          const script = document.createElement("script");
+          script.src = `https://webapi.amap.com/subway?v=1.0&key=${API_KEY}&callback=cbk`;
+          script.onerror = function () {
+            showError();
+          };
+          document.head.appendChild(script);
+
+          setTimeout(() => {
+            if (!subwayMap) {
+              showError();
+            }
+          }, 10000);
+        } catch (error) {
+          showError();
+        }
+      }
+
+      // 全局回调函数 - 按照官方示例命名为cbk
+      window.cbk = function () {
+        try {
+          hideLoading();
+
+          subwayMap = window.subway("subway-map", {
+            easy: 1,
+            adcode: "8100",
+          });
+
+          if (subwayMap) {
+            subwayMap.event.on("subway.routeComplete", (e) => {
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage(
+                  {
+                    type: "subway-route-complete",
+                    data: e._args,
+                  },
+                  "*"
+                );
+              }
+            });
+
+            subwayMap.event.on("subway.complete", (e) => {
+              subwayMap.getLineList((lineList) => {
+                // Line list retrieved
+              });
+            });
+
+            subwayMap.event.on("station.touch ", (e) => {
+              const poiid = e._args.poiid;
+              if (poiid) {
+                // 直接发送poiid给父页面处理
+                if (window.parent && window.parent !== window) {
+                  window.parent.postMessage(
+                    {
+                      type: "subway-station-detail",
+                      data: {
+                        poiid: poiid,
+                      },
+                    },
+                    "*"
+                  );
+                }
+              }
+            });
+          }
+        } catch (error) {
+          showError();
+        }
+      };
+
+      // 监听来自父页面（Vue组件）的消息
+      window.addEventListener("message", (event) => {
+        // 安全检查：确保消息来源正确
+        if (event.origin !== window.location.origin) {
+          return;
+        }
+
+        const { type, data } = event.data;
+
+        switch (type) {
+          case "setStart":
+            if (subwayMap && data.stationId) {
+              subwayMap.setStart(data.stationName);
+            }
+            break;
+
+          case "setEnd":
+            if (subwayMap && data.stationId) {
+              subwayMap.setEnd(data.stationName);
+            }
+            break;
+
+          case "showLine":
+            if (subwayMap && data.lineId) {
+              subwayMap.showLine(data.lineId);
+            }
+            break;
+
+          case "clearLine":
+            if (subwayMap) {
+              subwayMap.clearLine();
+            }
+            break;
+
+          case "planRoute":
+            if (subwayMap && data.startStationId && data.endStationId) {
+              subwayMap.setStart(data.startStationName);
+              subwayMap.setEnd(data.endStationName);
+              subwayMap.route(data.startStationId, data.endStationId);
+            }
+            break;
+
+          default:
+            // 忽略其他类型的消息
+            break;
+        }
+      });
+
+      // 页面加载完成后初始化
+      document.addEventListener("DOMContentLoaded", function () {
+        initSubwayMap();
+      });
+
+      // 清理资源
+      window.addEventListener("beforeunload", function () {
+        if (subwayMap && typeof subwayMap.destroy === "function") {
+          subwayMap.destroy();
+        }
+        if (window.cbk) {
+          delete window.cbk;
+        }
+      });
+    </script>
+  </body>
+</html>

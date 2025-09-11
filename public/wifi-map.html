@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>香港WiFi热点分布地图</title>
+    <script src="./OpenLayers.js"></script>
+    <script src="./config.js"></script>
+    <style>
+      #mapdiv {
+        width: 100%;
+        height: 100vh;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      /* 地图样式选择器 */
+      .map-style-selector {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .map-style-selector select {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        background: white;
+      }
+      .olPopup {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .olPopupContent {
+        background: transparent !important;
+        overflow: visible !important;
+      }
+      .popup {
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        padding: 10px 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        position: relative;
+        max-width: 280px;
+      }
+      .popup h4 {
+        margin: 0 0 8px 0;
+        color: #111827;
+        font-size: 14px;
+      }
+      .popup p {
+        margin: 4px 0;
+        color: #374151;
+        font-size: 12px;
+      }
+      .popup .close {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 16px;
+        line-height: 16px;
+        padding: 2px;
+        border-radius: 6px;
+      }
+      .popup .close:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #111827;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mapdiv"></div>
+
+    <!-- 地图样式选择器 -->
+    <div class="map-style-selector">
+      <select id="mapStyleSelector" onchange="changeMapStyle(this.value)">
+        <option value="cartodb-light">CartoDB 浅色</option>
+        <option value="osm">OpenStreetMap 标准</option>
+        <option value="cartodb-dark">CartoDB 深色</option>
+        <option value="cartodb-positron">CartoDB 简洁</option>
+        <option value="opentopomap">地形图</option>
+        <option value="wikimedia" selected>维基地图</option>
+        <option value="esri-satellite">ESRI 卫星图</option>
+      </select>
+    </div>
+    <script>
+      let map;
+      let markersLayer;
+      let currentPopup = null;
+      let currentBaseLayer = null;
+
+      // 地图样式配置
+      const mapStyles = {
+        "cartodb-light": {
+          name: "CartoDB Light",
+          urls: [
+            "https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png",
+            "https://b.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png",
+            "https://c.basemaps.cartocdn.com/light_all/${z}/${x}/${y}.png",
+          ],
+          attribution: "© OpenStreetMap contributors, © CartoDB",
+        },
+        osm: {
+          name: "OpenStreetMap",
+          urls: [
+            "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+            "https://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+            "https://c.tile.openstreetmap.org/${z}/${x}/${y}.png",
+          ],
+          attribution: "© OpenStreetMap contributors",
+        },
+        "cartodb-dark": {
+          name: "CartoDB Dark",
+          urls: [
+            "https://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+            "https://b.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+            "https://c.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png",
+          ],
+          attribution: "© OpenStreetMap contributors, © CartoDB",
+        },
+        "cartodb-positron": {
+          name: "CartoDB Positron",
+          urls: [
+            "https://a.basemaps.cartocdn.com/light_nolabels/${z}/${x}/${y}.png",
+            "https://b.basemaps.cartocdn.com/light_nolabels/${z}/${x}/${y}.png",
+            "https://c.basemaps.cartocdn.com/light_nolabels/${z}/${x}/${y}.png",
+          ],
+          attribution: "© OpenStreetMap contributors, © CartoDB",
+        },
+        opentopomap: {
+          name: "OpenTopoMap",
+          urls: [
+            "https://a.tile.opentopomap.org/${z}/${x}/${y}.png",
+            "https://b.tile.opentopomap.org/${z}/${x}/${y}.png",
+            "https://c.tile.opentopomap.org/${z}/${x}/${y}.png",
+          ],
+          attribution: "© OpenStreetMap contributors, © OpenTopoMap (CC-BY-SA)",
+        },
+        wikimedia: {
+          name: "Wikimedia",
+          urls: ["https://maps.wikimedia.org/osm-intl/${z}/${x}/${y}.png"],
+          attribution: "© OpenStreetMap contributors, © Wikimedia Foundation",
+        },
+        "esri-satellite": {
+          name: "ESRI Satellite",
+          urls: [
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}",
+          ],
+          attribution:
+            "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+        },
+      };
+
+      // 创建地图图层
+      function createMapLayer(styleKey) {
+        const style = mapStyles[styleKey];
+        return new OpenLayers.Layer.XYZ(style.name, style.urls, {
+          attribution: style.attribution,
+          sphericalMercator: true,
+          wrapDateLine: true,
+          numZoomLevels: 20,
+        });
+      }
+
+      // 切换地图样式
+      function changeMapStyle(styleKey) {
+        if (currentBaseLayer) {
+          map.removeLayer(currentBaseLayer);
+        }
+
+        currentBaseLayer = createMapLayer(styleKey);
+        map.addLayer(currentBaseLayer);
+
+        // 确保标记层在最上层
+        if (markersLayer) {
+          map.setLayerIndex(markersLayer, map.layers.length - 1);
+        }
+      }
+
+      // 初始化地图
+      function initMap() {
+        map = new OpenLayers.Map("mapdiv");
+
+        // 设置默认样式为维基地图
+        currentBaseLayer = createMapLayer("wikimedia");
+        map.addLayer(currentBaseLayer);
+
+        // 创建标记层
+        markersLayer = new OpenLayers.Layer.Markers("WiFi Hotspots");
+        map.addLayer(markersLayer);
+
+        // 设置初始视图为香港
+        var hongKongCenter = new OpenLayers.LonLat(114.1694, 22.3193).transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          map.getProjectionObject()
+        );
+
+        map.setCenter(hongKongCenter, 12);
+
+        // 加载WiFi热点数据
+        loadWifiData();
+      }
+
+      // 加载WiFi热点数据
+      async function loadWifiData() {
+        try {
+          const response = await fetch(
+            `${window.APP_CONFIG.API_BASE_URL}/wifi`
+          );
+          const data = await response.json();
+
+          // 过滤出有效的WiFi热点数据
+          const wifiHotspots = data.filter(
+            (item) => item.LocationNameTC && item.Latitude && item.Longitude
+          );
+
+          // 添加标记
+          wifiHotspots.forEach((hotspot) => {
+            addWifiMarker(hotspot);
+          });
+        } catch (error) {
+          console.error("Failed to load WiFi data:", error);
+        }
+      }
+
+      // 添加WiFi热点标记
+      function addWifiMarker(hotspot) {
+        if (!hotspot.Latitude || !hotspot.Longitude) return;
+
+        const lonLat = new OpenLayers.LonLat(
+          parseFloat(hotspot.Longitude),
+          parseFloat(hotspot.Latitude)
+        ).transform(
+          new OpenLayers.Projection("EPSG:4326"),
+          map.getProjectionObject()
+        );
+
+        // 创建自定义标记图标 (使用WiFi图标颜色)
+        var size = new OpenLayers.Size(16, 16);
+        var offset = new OpenLayers.Pixel(-(size.w / 2), -size.h);
+        var icon = new OpenLayers.Icon(
+          "data:image/svg+xml;base64," +
+            btoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="6" fill="#10B981" stroke="white" stroke-width="2"/>
+                    <circle cx="8" cy="8" r="3" fill="white"/>
+                </svg>
+            `),
+          size,
+          offset
+        );
+
+        const marker = new OpenLayers.Marker(lonLat, icon);
+
+        // 添加点击事件
+        marker.events.register("mousedown", marker, function (evt) {
+          showWifiPopup(hotspot, lonLat);
+          OpenLayers.Event.stop(evt);
+        });
+
+        markersLayer.addMarker(marker);
+      }
+
+      // 显示WiFi热点信息弹窗
+      function showWifiPopup(hotspot, lonLat) {
+        if (currentPopup) {
+          try {
+            map.removePopup(currentPopup);
+            currentPopup.destroy();
+          } catch (_) {}
+          currentPopup = null;
+        }
+        if (map.popups.length > 0) {
+          try {
+            map.removePopup(map.popups[0]);
+          } catch (_) {}
+        }
+
+        const html = `
+          <div class="popup">
+            <a href="#" id="wifi-close" class="close" aria-label="close">×</a>
+            <h4>${hotspot.LocationNameTC}</h4>
+            <p><strong>类型:</strong> ${hotspot.VenueTypeTC}</p>
+            <p><strong>地区:</strong> ${hotspot.DistrictTC}, ${
+          hotspot.AreaTC
+        }</p>
+            <p><strong>WiFi热点:</strong> ${hotspot.NumberOfHotspots}个</p>
+            <p><strong>SSID:</strong> ${hotspot.SSID}</p>
+            ${
+              hotspot.SupportHotline
+                ? `<p><strong>支持热线:</strong> ${hotspot.SupportHotline}</p>`
+                : ""
+            }
+            ${
+              hotspot.SupportEmail
+                ? `<p><strong>邮箱:</strong> ${hotspot.SupportEmail}</p>`
+                : ""
+            }
+          </div>`;
+
+        const popup = new OpenLayers.Popup(
+          "wifiPopup",
+          lonLat,
+          new OpenLayers.Size(240, 1),
+          html,
+          false
+        );
+        popup.autoSize = true;
+        map.addPopup(popup);
+        currentPopup = popup;
+        setTimeout(() => {
+          const btn = document.getElementById("wifi-close");
+          if (btn)
+            btn.onclick = (e) => {
+              e.preventDefault();
+              if (currentPopup) {
+                try {
+                  map.removePopup(currentPopup);
+                  currentPopup.destroy();
+                } catch (_) {}
+                currentPopup = null;
+              }
+            };
+        }, 0);
+      }
+
+      // URL参数处理（用于单独查看某个热点）
+      function handleUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = urlParams.get("lat");
+        const lng = urlParams.get("lng");
+        const name = urlParams.get("name");
+
+        if (lat && lng) {
+          const targetLonLat = new OpenLayers.LonLat(
+            parseFloat(lng),
+            parseFloat(lat)
+          ).transform(
+            new OpenLayers.Projection("EPSG:4326"),
+            map.getProjectionObject()
+          );
+
+          map.setCenter(targetLonLat, 16);
+
+          if (name) {
+            // 为特定热点创建高亮标记
+            var size = new OpenLayers.Size(20, 20);
+            var offset = new OpenLayers.Pixel(-(size.w / 2), -size.h);
+            var highlightIcon = new OpenLayers.Icon(
+              "data:image/svg+xml;base64," +
+                btoa(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="8" fill="#EF4444" stroke="white" stroke-width="2"/>
+                            <circle cx="10" cy="10" r="4" fill="white"/>
+                        </svg>
+                    `),
+              size,
+              offset
+            );
+
+            const highlightMarker = new OpenLayers.Marker(
+              targetLonLat,
+              highlightIcon
+            );
+            markersLayer.addMarker(highlightMarker);
+
+            // 显示热点名称弹窗
+            setTimeout(() => {
+              if (currentPopup) {
+                try {
+                  map.removePopup(currentPopup);
+                  currentPopup.destroy();
+                } catch (_) {}
+                currentPopup = null;
+              }
+              const popup = new OpenLayers.Popup(
+                "highlightPopup",
+                targetLonLat,
+                new OpenLayers.Size(220, 1),
+                `<div class="popup"><h4>${decodeURIComponent(name)}</h4></div>`,
+                false
+              );
+              popup.autoSize = true;
+              map.addPopup(popup);
+              currentPopup = popup;
+            }, 500);
+          }
+        }
+      }
+
+      // 页面加载完成后初始化
+      window.onload = function () {
+        initMap();
+        setTimeout(handleUrlParams, 1000); // 等待地图加载完成后处理URL参数
+      };
+    </script>
+  </body>
+</html>

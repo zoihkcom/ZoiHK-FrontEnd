@@ -1,0 +1,32 @@
+{
+  "name": "smarthk-front",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/icalendar": "^6.1.19",
+    "@fullcalendar/vue3": "^6.1.19",
+    "@googlemaps/js-api-loader": "^1.16.10",
+    "@tailwindcss/vite": "^4.1.12",
+    "axios": "^1.11.0",
+    "chart.js": "^4.5.0",
+    "markdown-it": "^14.1.0",
+    "naive-ui": "^2.42.0",
+    "tailwindcss": "^4.1.12",
+    "vfonts": "^0.0.3",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "vite": "^7.1.2"
+  }
+}
