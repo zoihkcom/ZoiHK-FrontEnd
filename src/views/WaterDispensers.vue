@@ -85,8 +85,7 @@
                 <i class="fa fa-map-marker-alt text-blue-500"></i>
                 <div class="flex-1 relative">
                   <input ref="searchInputRef" v-model="locationSearchQuery" @input="onLocationSearchInput"
-                    @focus="showSuggestions" @blur="hideLocationSuggestions"
-                    placeholder="搜索地点（显示周围2公里内的饮水机）..."
+                    @focus="showSuggestions" @blur="hideLocationSuggestions" placeholder="搜索地点（显示周围2公里内的饮水机）..."
                     class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                 </div>
                 <button v-if="selectedLocation" @click="clearLocationSearch"
@@ -104,22 +103,21 @@
                 </div>
               </div>
             </div>
-            
-    <!-- 搜索建议下拉框 - 移到外层避免层叠上下文限制 -->
-    <Teleport to="body">
-      <div v-if="showLocationSuggestions && locationSuggestions.length > 0"
-        :style="suggestionBoxStyle"
-        class="bg-white rounded-lg shadow-lg border border-slate-200 max-h-60 overflow-y-auto"
-        style="position: absolute; z-index: 9999;">
-        <div v-for="(suggestion, index) in locationSuggestions" :key="index"
-          @mousedown="selectLocationSuggestion(suggestion)"
-          class="p-3 cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-b-0">
-          <div class="font-medium text-slate-900">{{ suggestion.name }}</div>
-          <div class="text-sm text-slate-600">{{ suggestion.address }}</div>
-          <div class="text-xs text-slate-500">{{ suggestion.district }} {{ suggestion.city }}</div>
-        </div>
-      </div>
-    </Teleport>
+
+            <!-- 搜索建议下拉框 - 移到外层避免层叠上下文限制 -->
+            <Teleport to="body">
+              <div v-if="showLocationSuggestions && locationSuggestions.length > 0" :style="suggestionBoxStyle"
+                class="bg-white rounded-lg shadow-lg border border-slate-200 max-h-60 overflow-y-auto"
+                style="position: absolute; z-index: 9999;">
+                <div v-for="(suggestion, index) in locationSuggestions" :key="index"
+                  @mousedown="selectLocationSuggestion(suggestion)"
+                  class="p-3 cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-b-0">
+                  <div class="font-medium text-slate-900">{{ suggestion.name }}</div>
+                  <div class="text-sm text-slate-600">{{ suggestion.address }}</div>
+                  <div class="text-xs text-slate-500">{{ suggestion.district }} {{ suggestion.city }}</div>
+                </div>
+              </div>
+            </Teleport>
 
             <!-- 原有筛选器 -->
             <div class="flex flex-col sm:flex-row gap-4">
@@ -269,11 +267,11 @@ const suggestionBoxStyle = computed(() => {
   if (!searchInputRef.value || !showLocationSuggestions.value || !locationSuggestions.value.length) {
     return { display: 'none' }
   }
-  
+
   try {
     const rect = searchInputRef.value.getBoundingClientRect()
     const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop
-    
+
     return {
       top: `${rect.bottom + scrollY + 4}px`,
       left: `${rect.left + window.scrollX}px`,
