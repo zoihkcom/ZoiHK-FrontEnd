@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+  <nav class="fixed top-0 left-0 right-0 z-[1010] bg-white/80 backdrop-blur-md border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="relative flex justify-between items-center h-16">
         <!-- Logo -->
@@ -40,7 +40,7 @@
 
             <!-- Dropdown Menu -->
             <div v-show="cityTransitOpen"
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
                 <router-link to="/weather"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -173,7 +173,7 @@
 
             <!-- Dropdown Menu -->
             <div v-show="facilitiesOpen"
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
                 <router-link to="/wifi"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -256,7 +256,7 @@
 
             <!-- Dropdown Menu -->
             <div v-show="eventsOpen"
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
                 <!-- <router-link to="/events"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -303,7 +303,7 @@
 
             <!-- Language Dropdown -->
             <div v-show="languageOpen"
-              class="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
+              class="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
                 <button
                   class="flex items-center w-full px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-left">
