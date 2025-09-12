@@ -1,13 +1,6 @@
 <template>
   <footer class="bg-slate-900 text-white py-16 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
-      <!-- Klook Affiliate Widget (placed at top of footer) -->
-      <div class="mb-8">
-        <ins class="klk-aff-widget" data-adid="1119724" data-lang="" data-currency="" data-cardH="126" data-padding="92"
-          data-lgH="470" data-edgeValue="655" data-cid="2" data-tid="-1" data-amount="4" data-prod="dynamic_widget">
-          <a href="//www.klook.com/">Klook.com</a>
-        </ins>
-      </div>
       <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-8 mb-8">
         <!-- Brand Section -->
         <div class="lg:col-span-1">
@@ -97,23 +90,5 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-
-// 动态加载 Klook Widget 脚本（仅加载一次）
-onMounted(() => {
-  const scriptId = 'klook-affiliate-widget-loader'
-  if (!document.getElementById(scriptId)) {
-    const s = document.createElement('script')
-    s.id = scriptId
-    s.type = 'text/javascript'
-    s.async = true
-    s.src = 'https://affiliate.klook.com/widget/fetch-iframe-init.js'
-    const p = document.getElementsByTagName('script')[0]
-    if (p && p.parentNode) {
-      p.parentNode.insertBefore(s, p)
-    } else {
-      document.body.appendChild(s)
-    }
-  }
-})
+// Footer component - no additional scripts needed
 </script>

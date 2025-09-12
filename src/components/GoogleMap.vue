@@ -86,11 +86,23 @@ function updateMarkers() {
         title: item.title
       })
     } else if (window.google?.maps?.Marker) {
-      marker = new window.google.maps.Marker({
+      const markerOptions = {
         map,
         position,
         title: item.title
-      })
+      }
+      
+      // 如果有自定义图标，添加图标配置
+      if (item.icon) {
+        markerOptions.icon = {
+          url: item.icon,
+          scaledSize: new window.google.maps.Size(32, 32), // 调整图标大小
+          origin: new window.google.maps.Point(0, 0),
+          anchor: new window.google.maps.Point(16, 32) // 图标锚点
+        }
+      }
+      
+      marker = new window.google.maps.Marker(markerOptions)
     }
     if (marker) markerInstances.push(marker)
   }
