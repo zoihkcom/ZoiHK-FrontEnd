@@ -118,7 +118,7 @@
     </div>
 
     <!-- Route Stops Right Popup -->
-    <div v-if="selectedRoute" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50">
+    <div v-if="selectedRoute" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-9999">
       <div class="h-full flex flex-col">
         <!-- Header -->
         <div class="px-6 py-4 bg-white text-gray-900 border-b border-gray-200">
@@ -187,13 +187,9 @@
                     <i class="fa fa-map-marker mr-1"></i>
                     <template v-if="hasCoords(stop.stop_info)">
                       {{ formatCoord(stop.stop_info.lat) }}, {{ formatCoord(stop.stop_info.longitude) }}
-                      <a
-                        :href="googleMapsLink(stop.stop_info.lat, stop.stop_info.longitude, stop.stop_info.name_tc || stop.stop_info.name_en)"
+                      <a :href="googleMapsLink(stop.stop_info.lat, stop.stop_info.longitude, stop.stop_info.name_tc || stop.stop_info.name_en)"
                         class="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium text-white bg-orange-600 hover:bg-orange-700 rounded"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="在 Google 地图打开"
-                      >
+                        target="_blank" rel="noopener noreferrer" title="在 Google 地图打开">
                         <i class="fa fa-external-link mr-1"></i> 在地图查看
                       </a>
                     </template>
@@ -206,11 +202,8 @@
                   <!-- ETA信息显示 -->
                   <div v-if="getFilteredETA(stop.stop_info.stop).length > 0" class="mt-2">
                     <div class="text-xs text-gray-500 mb-1">到站时间:</div>
-                    <div
-                      v-for="eta in getFilteredETA(stop.stop_info.stop).slice(0, 3)"
-                      :key="eta.eta_seq"
-                      class="flex items-center text-xs text-gray-700 mb-1"
-                    >
+                    <div v-for="eta in getFilteredETA(stop.stop_info.stop).slice(0, 3)" :key="eta.eta_seq"
+                      class="flex items-center text-xs text-gray-700 mb-1">
                       <i class="fa fa-clock-o mr-1 text-orange-600"></i>
                       <span class="font-medium">{{ formatETA(eta.eta) }}</span>
                       <span v-if="eta.rmk_tc" class="ml-2 text-gray-500">({{ eta.rmk_tc }})</span>

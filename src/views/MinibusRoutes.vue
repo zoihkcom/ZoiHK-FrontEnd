@@ -117,7 +117,7 @@
     </div>
 
     <!-- Route Stops Right Popup -->
-    <div v-if="selectedRoute" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50">
+    <div v-if="selectedRoute" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-9999">
       <div class="h-full flex flex-col">
         <!-- Header -->
         <div class="px-6 py-4 bg-white text-gray-900 border-b border-gray-200">

@@ -125,7 +125,7 @@
     </div>
 
     <!-- Route Stops Right Popup -->
-    <div v-if="selectedRoute" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50">
+    <div v-if="selectedRoute" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-9999">
       <div class="h-full flex flex-col">
         <!-- Header -->
         <div class="px-6 py-4 bg-white text-gray-900 border-b border-gray-200">
@@ -203,11 +203,8 @@
                   <!-- ETA信息显示 -->
                   <div v-if="stopsEta[stop.stop_info.stop] && stopsEta[stop.stop_info.stop].length > 0" class="mt-2">
                     <div class="text-xs text-gray-500 mb-1">到站时间:</div>
-                    <div
-                      v-for="eta in stopsEta[stop.stop_info.stop].slice(0, 3)"
-                      :key="eta.eta_seq"
-                      class="flex items-center text-xs text-gray-700 mb-1"
-                    >
+                    <div v-for="eta in stopsEta[stop.stop_info.stop].slice(0, 3)" :key="eta.eta_seq"
+                      class="flex items-center text-xs text-gray-700 mb-1">
                       <i class="fa fa-clock-o mr-1 text-green-600"></i>
                       <span class="font-medium">{{ formatETA(eta.eta) }}</span>
                       <span v-if="eta.rmk_tc" class="ml-2 text-gray-500">({{ eta.rmk_tc }})</span>
@@ -405,7 +402,7 @@ const fetchAllStopsETA = async (stops) => {
 
   // 等待所有ETA查询完成
   const etaResults = await Promise.all(etaPromises)
-  
+
   // 将结果设置到stopsEta对象中
   etaResults.forEach(result => {
     if (result) {
