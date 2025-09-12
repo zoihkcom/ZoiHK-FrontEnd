@@ -100,7 +100,7 @@
       </div>
     </div>
   </div>
-  
+
 </template>
 
 <script setup>
@@ -177,9 +177,9 @@ const mapMarkers = computed(() =>
 )
 
 const viewOnMap = (pier) => {
-  const name = pier.name_tc || pier.name_sc || pier.name_en
+  const name = pier.name_sc
   if (name) {
-    const query = `${name} 香港 渡轮码头`
+    const query = `${name}`
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
     window.open(url, '_blank')
   } else {
@@ -199,5 +199,7 @@ const focusMarker = (pier) => {
 </script>
 
 <style scoped>
-.backdrop-blur-sm { backdrop-filter: blur(4px); }
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
 </style>
