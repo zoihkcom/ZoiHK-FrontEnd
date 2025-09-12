@@ -93,6 +93,11 @@ const routes = [
     component: () => import("../views/Events.vue"),
   },
   {
+    path: "/tickets",
+    name: "Tickets",
+    component: () => import("../views/Tickets.vue"),
+  },
+  {
     path: "/bus-routes",
     name: "BusRoutes",
     component: () => import("../views/BusRoutes.vue"),

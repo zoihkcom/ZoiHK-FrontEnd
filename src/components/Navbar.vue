@@ -258,6 +258,14 @@
             <div v-show="eventsOpen"
               class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
+                <router-link to="/tickets"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-ticket w-4 text-pink-500"></i>
+                  <div>
+                    <div class="font-medium">URBTIX 票务</div>
+                    <div class="text-xs text-gray-500">按日期查询票务</div>
+                  </div>
+                </router-link>
                 <!-- <router-link to="/events"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-calendar w-4 text-pink-500"></i>
@@ -474,6 +482,10 @@
             <div class="text-sm font-semibold text-gray-900 mb-2">活动与票务 Events & Tickets</div>
           </div>
 
+          <router-link to="/tickets" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-ticket w-4 text-pink-500 mr-2"></i>URBTIX 票务
+          </router-link>
           <router-link to="/events" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-calendar w-4 text-pink-500 mr-2"></i>政府活动
