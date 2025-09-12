@@ -96,7 +96,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div v-for="dispenser in filteredDispensers" :key="dispenser.id"
               class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-slate-100">
-              
+
               <div class="p-6">
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex-1">
@@ -108,7 +108,8 @@
                     </div>
                   </div>
                   <div class="text-right">
-                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full mb-1">
+                    <span
+                      class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full mb-1">
                       {{ dispenser.category }}
                     </span>
                     <div class="text-xs text-slate-500">{{ dispenser.source }}</div>
@@ -128,11 +129,13 @@
                     <div class="text-xs text-slate-500">饮水机数量</div>
                   </div>
                   <div class="text-center">
-                    <div class="text-lg font-semibold text-blue-600">{{ parseFloat(dispenser.latitude).toFixed(4) }}</div>
+                    <div class="text-lg font-semibold text-blue-600">{{ parseFloat(dispenser.latitude).toFixed(4) }}
+                    </div>
                     <div class="text-xs text-slate-500">纬度</div>
                   </div>
                   <div class="text-center">
-                    <div class="text-lg font-semibold text-purple-600">{{ parseFloat(dispenser.longitude).toFixed(4) }}</div>
+                    <div class="text-lg font-semibold text-purple-600">{{ parseFloat(dispenser.longitude).toFixed(4) }}
+                    </div>
                     <div class="text-xs text-slate-500">经度</div>
                   </div>
                 </div>
@@ -142,16 +145,20 @@
                     <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">
                       {{ dispenser.type }}
                     </span>
-                    <span v-if="dispenser.temperature" class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-md font-medium">
+                    <span v-if="dispenser.temperature"
+                      class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-md font-medium">
                       {{ dispenser.temperature }}
                     </span>
-                    <span v-if="dispenser.location_type" class="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-md font-medium">
+                    <span v-if="dispenser.location_type"
+                      class="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-md font-medium">
                       {{ dispenser.location_type }}
                     </span>
-                    <span v-if="dispenser.service_hours" class="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-md font-medium">
+                    <span v-if="dispenser.service_hours"
+                      class="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-md font-medium">
                       {{ dispenser.service_hours }}
                     </span>
-                    <span v-if="dispenser.service_exception" class="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-md font-medium">
+                    <span v-if="dispenser.service_exception"
+                      class="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-md font-medium">
                       {{ dispenser.service_exception }}
                     </span>
                   </div>
@@ -229,7 +236,7 @@ const fetchLCSDData = async () => {
     const url = 'https://portal.csdi.gov.hk/server/services/common/lcsd_rcd_1671530248519_33416/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=geotagging&outputFormat=geojson'
     const response = await fetch(url)
     const data = await response.json()
-    
+
     return data.features.map(feature => ({
       id: `lcsd_${feature.properties.GmlID}`,
       source: '康乐及文化事务署',
@@ -259,7 +266,7 @@ const fetchFEHDData = async () => {
     const url = 'https://portal.csdi.gov.hk/server/services/common/fehd_rcd_1629969846020_11292/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=FEHD_WDPM&outputFormat=geojson'
     const response = await fetch(url)
     const data = await response.json()
-    
+
     return data.features.map(feature => ({
       id: `fehd_${feature.properties.GmlID}`,
       source: '食物环境卫生署',
@@ -289,7 +296,7 @@ const fetchWSDData = async () => {
     const url = 'https://portal.csdi.gov.hk/server/services/common/wsd_rcd_1665992255383_47502/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=Water_Dispensers_in_WSD_Venues&outputFormat=geojson'
     const response = await fetch(url)
     const data = await response.json()
-    
+
     return data.features.map(feature => ({
       id: `wsd_${feature.properties.GmlID}`,
       source: '水务署',
@@ -319,7 +326,7 @@ const fetchCADData = async () => {
     const url = 'https://portal.csdi.gov.hk/server/services/common/cad_rcd_1669714722848_98043/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=geotagging&outputFormat=geojson'
     const response = await fetch(url)
     const data = await response.json()
-    
+
     return data.features.map(feature => ({
       id: `cad_${feature.properties.GmlID}`,
       source: '民航处',
@@ -350,7 +357,7 @@ const fetchAFCDCountryData = async () => {
     const url = 'https://portal.csdi.gov.hk/server/services/common/afcd_rcd_1635133835075_48993/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=CPWDL&outputFormat=geojson'
     const response = await fetch(url)
     const data = await response.json()
-    
+
     return data.features.map(feature => ({
       id: `afcd_country_${feature.properties.GmlID}`,
       source: '渔农自然护理署',
@@ -380,7 +387,7 @@ const fetchAFCDMarineData = async () => {
     const url = 'https://portal.csdi.gov.hk/server/services/common/afcd_rcd_1635134016841_24336/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=geotagging&outputFormat=geojson'
     const response = await fetch(url)
     const data = await response.json()
-    
+
     return data.features.map(feature => ({
       id: `afcd_marine_${feature.properties.GmlID}`,
       source: '渔农自然护理署',

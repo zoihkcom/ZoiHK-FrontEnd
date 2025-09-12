@@ -26,21 +26,21 @@
           </router-link>
 
           <!-- City & Transit Dropdown -->
-          <div class="relative group">
-            <button class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+          <div class="relative">
+            <button @click="toggleDropdown(cityTransitOpen ? '' : 'cityTransit')" class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>城市与出行</span>
                 <span class="text-xs text-gray-500">City & Transit</span>
               </div>
-              <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor"
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': cityTransitOpen }" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
 
             <!-- Dropdown Menu -->
-            <div
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div v-show="cityTransitOpen"
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
               <div class="p-2">
                 <router-link to="/weather"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -159,21 +159,21 @@
           </div>
 
           <!-- Facilities & Nearby Dropdown -->
-          <div class="relative group">
-            <button class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+          <div class="relative">
+            <button @click="toggleDropdown(facilitiesOpen ? '' : 'facilities')" class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>生活设施与附近</span>
                 <span class="text-xs text-gray-500">Facilities & Nearby</span>
               </div>
-              <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor"
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': facilitiesOpen }" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
 
             <!-- Dropdown Menu -->
-            <div
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div v-show="facilitiesOpen"
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
               <div class="p-2">
                 <router-link to="/wifi"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -242,21 +242,21 @@
           </div>
 
           <!-- Events & Tickets Dropdown -->
-          <div class="relative group">
-            <button class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+          <div class="relative">
+            <button @click="toggleDropdown(eventsOpen ? '' : 'events')" class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>活动与票务</span>
                 <span class="text-xs text-gray-500">Events & Tickets</span>
               </div>
-              <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor"
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': eventsOpen }" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
 
             <!-- Dropdown Menu -->
-            <div
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div v-show="eventsOpen"
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
               <div class="p-2">
                 <!-- <router-link to="/events"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -290,20 +290,20 @@
         <!-- Right side controls -->
         <div class="flex items-center space-x-3">
           <!-- Language Selector -->
-          <div class="hidden md:block relative group">
-            <button
+          <div class="hidden md:block relative">
+            <button @click="toggleDropdown(languageOpen ? '' : 'language')"
               class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors rounded-lg hover:bg-gray-50">
               <i class="fa fa-globe w-4"></i>
               <span class="text-sm">中文</span>
-              <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor"
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': languageOpen }" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
 
             <!-- Language Dropdown -->
-            <div
-              class="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div v-show="languageOpen"
+              class="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-50">
               <div class="p-2">
                 <button
                   class="flex items-center w-full px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-left">
@@ -533,7 +533,58 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const isOpen = ref(false)
+const cityTransitOpen = ref(false)
+const facilitiesOpen = ref(false)
+const eventsOpen = ref(false)
+const languageOpen = ref(false)
+
+const toggleDropdown = (dropdownName) => {
+  // 关闭所有下拉菜单
+  cityTransitOpen.value = false
+  facilitiesOpen.value = false
+  eventsOpen.value = false
+  languageOpen.value = false
+  
+  // 打开指定的下拉菜单
+  switch(dropdownName) {
+    case 'cityTransit':
+      cityTransitOpen.value = true
+      break
+    case 'facilities':
+      facilitiesOpen.value = true
+      break
+    case 'events':
+      eventsOpen.value = true
+      break
+    case 'language':
+      languageOpen.value = true
+      break
+  }
+}
+
+const closeAllDropdowns = () => {
+  cityTransitOpen.value = false
+  facilitiesOpen.value = false
+  eventsOpen.value = false
+  languageOpen.value = false
+}
+
+const handleClickOutside = (event) => {
+  // 检查点击是否在导航栏外部
+  const navbar = document.querySelector('nav')
+  if (navbar && !navbar.contains(event.target)) {
+    closeAllDropdowns()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
