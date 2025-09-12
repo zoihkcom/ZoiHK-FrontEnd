@@ -224,6 +224,12 @@
                       <i class="fa fa-map-marker mr-1"></i>
                       在地图查看
                     </button>
+                    <button @click="navigateToStop(stop)"
+                      class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                      title="Google Maps导航到该站">
+                      <i class="fa fa-directions mr-1"></i>
+                      导航
+                    </button>
                     <button @click="openUberForStop(stop)"
                       class="inline-flex items-center justify-center w-7 h-7 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded transition-colors"
                       title="用 Uber 从当前位置前往该站点">
@@ -430,23 +436,18 @@ const switchToOppositeDirection = async () => {
 // 在地图查看整条线路
 const openRouteOnMap = () => {
   if (!selectedRoute.value) return
-  const { route, bound, service_type } = selectedRoute.value
-  const url = `/bus-stops-map.html?route=${encodeURIComponent(route)}&direction=${encodeURIComponent(bound)}&serviceType=${encodeURIComponent(service_type)}`
+  const { route, orig_tc, dest_tc } = selectedRoute.value
+  const searchQuery = `香港巴士${route}号线 ${orig_tc}到${dest_tc}`
+  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
   window.open(url, '_blank') // 新标签页
 }
 
 // 在地图查看单个站点
 const viewStopOnMap = (stop) => {
   if (!selectedRoute.value || !stop?.stop_info) return
-  const { route, bound, service_type } = selectedRoute.value
   const s = stop.stop_info
-  const url =
-    `/bus-stops-map.html?route=${encodeURIComponent(route)}` +
-    `&direction=${encodeURIComponent(bound)}` +
-    `&serviceType=${encodeURIComponent(service_type)}` +
-    `&lat=${encodeURIComponent(s.lat || '')}` +
-    `&lng=${encodeURIComponent(s.longitude || '')}` +
-    `&name=${encodeURIComponent(s.name_tc || s.name_en || '')}`
+  const searchQuery = `香港${s.name_tc || s.name_en}巴士站`
+  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
   window.open(url, '_blank') // 新标签页
 }
 
@@ -464,6 +465,15 @@ const formatETA = (etaString) => {
   } else {
     return etaTime.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })
   }
+}
+
+// Google Maps 导航到站点
+const navigateToStop = (stop) => {
+  if (!stop?.stop_info) return
+  const s = stop.stop_info
+  const destination = `香港${s.name_tc || s.name_en || '巴士站'}`
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+  window.open(url, '_blank')
 }
 
 // 使用 Uber 从当前位置前往该站点

@@ -187,16 +187,6 @@
                     <template v-else>
                       无坐标
                     </template>
-
-                    <a v-if="stopCoords[stop.stop_id]"
-                      :href="googleMapsLink(stopCoords[stop.stop_id], stop.name_tc || stop.name_en)"
-                      class="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded"
-                      target="_blank" rel="noopener noreferrer" title="在 Google 地图打开">
-                      <i class="fa fa-external-link mr-1"></i> 在地图查看
-                    </a>
-                    <button v-else disabled
-                      class="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium text-gray-400 bg-gray-100 rounded cursor-not-allowed"
-                      title="坐标未就绪">在地图查看</button>
                   </div>
 
                   <!-- ETA -->
@@ -219,6 +209,27 @@
                       </div>
                     </template>
                   </div>
+
+                  <!-- 操作按钮 -->
+                  <div class="mt-2 flex items-center gap-2">
+                    <button @click="viewStopOnMap(stop)"
+                      class="inline-flex items-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors"
+                      title="在地图查看该站">
+                      <i class="fa fa-map-marker mr-1"></i>
+                      在地图查看
+                    </button>
+                    <button v-if="stopCoords[stop.stop_id]" @click="navigateToStop(stop)"
+                      class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                      title="Google Maps导航到该站">
+                      <i class="fa fa-directions mr-1"></i>
+                      导航
+                    </button>
+                    <button v-if="stopCoords[stop.stop_id]" @click="openUberForStop(stop)"
+                      class="inline-flex items-center justify-center w-7 h-7 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded transition-colors"
+                      title="用 Uber 从当前位置前往该站点">
+                      <i class="fa fa-car"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -233,6 +244,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import Navbar from '@/components/Navbar.vue'
+import { generateUberDeepLink, openUber as openUberApp } from '@/utils/uber.js'
 
 const loading = ref(false)
 const error = ref(null)
@@ -412,11 +424,71 @@ const fetchCurrentDirectionCoords = async () => {
   await Promise.allSettled(tasks)
 }
 
-const googleMapsLink = (coord, name) => {
-  if (!coord) return '#'
-  const lat = formatCoord(coord.lat)
-  const lng = formatCoord(coord.lng)
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+// 在地图查看单个站点
+const viewStopOnMap = (stop) => {
+  if (!stop?.stop_id) return
+  const searchQuery = `香港${stop.name_tc || stop.name_en || '巴士站'}`
+  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
+  window.open(url, '_blank')
+}
+
+// Google Maps 导航到站点
+const navigateToStop = (stop) => {
+  if (!stop?.stop_id || !stopCoords.value[stop.stop_id]) return
+  const destination = `香港${stop.name_tc || stop.name_en || '巴士站'}`
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+  window.open(url, '_blank')
+}
+
+// 使用 Uber 从当前位置前往该站点
+const openUberForStop = (stop) => {
+  if (!stop?.stop_id || !stopCoords.value[stop.stop_id]) return
+  const coord = stopCoords.value[stop.stop_id]
+  const destLat = coord.lat
+  const destLng = coord.lng
+  
+  if (!navigator.geolocation) {
+    alert('您的浏览器不支持地理位置功能')
+    return
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      try {
+        const pickup = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          name: '当前位置'
+        }
+        const destination = {
+          lat: destLat,
+          lng: destLng,
+          name: stop.name_tc || stop.name_en || '巴士站'
+        }
+        const url = generateUberDeepLink(pickup, destination)
+        openUberApp(url, { pickup, destination })
+      } catch (e) {
+        console.error('生成 Uber 链接失败:', e)
+        alert('生成 Uber 链接失败：' + (e?.message || '未知错误'))
+      }
+    },
+    (error) => {
+      let msg = '获取当前位置失败'
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          msg = '位置权限被拒绝，请在浏览器设置中允许位置访问'
+          break
+        case error.POSITION_UNAVAILABLE:
+          msg = '位置信息不可用'
+          break
+        case error.TIMEOUT:
+          msg = '获取位置超时'
+          break
+      }
+      alert(msg)
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+  )
 }
 
 // ------ ETA 获取（按路线-站点） ------
