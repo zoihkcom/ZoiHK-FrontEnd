@@ -18,7 +18,13 @@
           <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
             <div class="flex-1">
               <label class="block text-sm text-slate-600 mb-2">选择日期</label>
-              <n-date-picker v-model:value="selectedDate" type="date" clearable :actions="['now']" />
+              <n-date-picker
+                v-model:value="selectedDate"
+                type="date"
+                clearable
+                :is-date-disabled="disableFuture"
+                :actions="['now']"
+              />
             </div>
             <div class="flex-1">
               <label class="block text-sm text-slate-600 mb-2">搜索（标题 / 场地 / 类别）</label>
@@ -188,7 +194,22 @@ const filtered = computed(() => {
   ].some(v => (v || '').toLowerCase().includes(q)))
 })
 
+function disableFuture(ts) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return ts > today.getTime()
+}
+
+function clampFutureToToday() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (selectedDate.value > today.getTime()) {
+    selectedDate.value = today.getTime()
+  }
+}
+
 async function loadData() {
+  clampFutureToToday()
   loading.value = true
   error.value = ''
   try {
