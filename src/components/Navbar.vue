@@ -357,7 +357,7 @@
     </div>
 
     <!-- Mobile Navigation -->
-    <div v-show="isOpen" class="md:hidden bg-white border-t border-gray-200">
+    <div v-show="isOpen" class="md:hidden bg-white border-t border-gray-200 max-h-[80vh] overflow-y-auto">
       <div class="px-4 pt-2 pb-4 space-y-2">
         <router-link to="/" @click="isOpen = false"
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
