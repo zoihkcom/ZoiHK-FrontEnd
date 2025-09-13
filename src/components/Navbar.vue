@@ -27,13 +27,14 @@
 
           <!-- City & Transit Dropdown -->
           <div class="relative">
-            <button @click="toggleDropdown(cityTransitOpen ? '' : 'cityTransit')" class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+            <button @click="toggleDropdown(cityTransitOpen ? '' : 'cityTransit')"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>城市与出行</span>
                 <span class="text-xs text-gray-500">City & Transit</span>
               </div>
-              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': cityTransitOpen }" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': cityTransitOpen }" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
@@ -160,13 +161,14 @@
 
           <!-- Facilities & Nearby Dropdown -->
           <div class="relative">
-            <button @click="toggleDropdown(facilitiesOpen ? '' : 'facilities')" class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+            <button @click="toggleDropdown(facilitiesOpen ? '' : 'facilities')"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>生活设施与附近</span>
                 <span class="text-xs text-gray-500">Facilities & Nearby</span>
               </div>
-              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': facilitiesOpen }" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': facilitiesOpen }" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
@@ -199,6 +201,15 @@
                   <div>
                     <div class="font-medium">学校信息</div>
                     <div class="text-xs text-gray-500">学校位置与详情</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/heritage/monuments"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-university w-4 text-rose-500"></i>
+                  <div>
+                    <div class="font-medium">法定古迹</div>
+                    <div class="text-xs text-gray-500">Monuments</div>
                   </div>
                 </router-link>
 
@@ -243,13 +254,14 @@
 
           <!-- Events & Tickets Dropdown -->
           <div class="relative">
-            <button @click="toggleDropdown(eventsOpen ? '' : 'events')" class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+            <button @click="toggleDropdown(eventsOpen ? '' : 'events')"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>活动与票务</span>
                 <span class="text-xs text-gray-500">Events & Tickets</span>
               </div>
-              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': eventsOpen }" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': eventsOpen }" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
@@ -303,8 +315,8 @@
               class="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors rounded-lg hover:bg-gray-50">
               <i class="fa fa-globe w-4"></i>
               <span class="text-sm">中文</span>
-              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': languageOpen }" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': languageOpen }" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
@@ -466,6 +478,10 @@
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-map-marker w-4 text-orange-500 mr-2"></i>环境卫生设施
           </router-link>
+          <router-link to="/heritage/monuments" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-university w-4 text-rose-500 mr-2"></i>法定古蹟
+          </router-link>
           <router-link to="/hospital" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-hospital-o w-4 text-red-500 mr-2"></i>医院信息
@@ -559,9 +575,9 @@ const toggleDropdown = (dropdownName) => {
   facilitiesOpen.value = false
   eventsOpen.value = false
   languageOpen.value = false
-  
+
   // 打开指定的下拉菜单
-  switch(dropdownName) {
+  switch (dropdownName) {
     case 'cityTransit':
       cityTransitOpen.value = true
       break

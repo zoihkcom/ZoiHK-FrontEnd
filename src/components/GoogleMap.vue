@@ -15,15 +15,21 @@ const props = defineProps({
   zoom: { type: Number, default: 12 },
   markers: { type: Array, default: () => [] }, // [{ lat, lng, title }]
   mapId: { type: String, default: 'hk' },
-  disableDefaultUI: { type: Boolean, default: false }
+  disableDefaultUI: { type: Boolean, default: false },
+  // 多边形支持：
+  // [ { id, paths: [ [ {lat,lng}, ... ] /* outer */, [ ... ] /* holes */ ], strokeColor, fillColor, fillOpacity, strokeWeight, strokeOpacity, zIndex, clickable, data } ]
+  polygons: { type: Array, default: () => [] },
+  // 若为 true，更新多边形时自动适配视野
+  fitPolygonsBounds: { type: Boolean, default: true }
 })
 
-const emit = defineEmits(['ready', 'error'])
+const emit = defineEmits(['ready', 'error', 'polygon-click'])
 
 const mapEl = ref(null)
 let map = null
 let markerInstances = []
 let AdvancedMarkerClass = null
+let polygonInstances = []
 
 async function initMap() {
   try {
@@ -51,6 +57,7 @@ async function initMap() {
     })
 
     updateMarkers()
+    updatePolygons()
     emit('ready', { map })
   } catch (err) {
     console.error(err)
@@ -108,6 +115,66 @@ function updateMarkers() {
   }
 }
 
+function clearPolygons() {
+  for (const p of polygonInstances) {
+    if (p?.setMap) p.setMap(null)
+  }
+  polygonInstances = []
+}
+
+function updatePolygons() {
+  if (!map) return
+  clearPolygons()
+  const polys = props.polygons || []
+  if (!polys.length) return
+
+  const bounds = new window.google.maps.LatLngBounds()
+
+  for (const item of polys) {
+    // paths: Array<Array<{lat,lng}>>，第一条为外环，其它为洞
+    const paths = Array.isArray(item.paths) ? item.paths.map(ring => (ring || []).map(pt => ({ lat: pt.lat, lng: pt.lng }))) : []
+    if (!paths.length) continue
+
+    // 扩展 bounds
+    for (const ring of paths) {
+      for (const pt of ring) bounds.extend(pt)
+    }
+
+    const polygon = new window.google.maps.Polygon({
+      paths,
+      strokeColor: item.strokeColor || '#DB2777', // pink-600
+      strokeOpacity: typeof item.strokeOpacity === 'number' ? item.strokeOpacity : 0.9,
+      strokeWeight: typeof item.strokeWeight === 'number' ? item.strokeWeight : 2,
+      fillColor: item.fillColor || '#DB2777',
+      fillOpacity: typeof item.fillOpacity === 'number' ? item.fillOpacity : 0.15,
+      zIndex: item.zIndex ?? 1,
+      clickable: item.clickable !== false
+    })
+
+    polygon.setMap(map)
+    polygon.__payload = item
+
+    // 交互事件
+    if (polygon.get('clickable')) {
+      polygon.addListener('click', (ev) => {
+        emit('polygon-click', { event: ev, data: item.data || null, polygon })
+      })
+    }
+
+    polygonInstances.push(polygon)
+  }
+
+  if (props.fitPolygonsBounds && !bounds.isEmpty()) {
+    // 若只有一个点，避免 setCenter 抛错
+    if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+      map.setCenter(bounds.getCenter())
+      if (typeof props.zoom === 'number') map.setZoom(props.zoom)
+    } else {
+      map.fitBounds(bounds, 24)
+    }
+  }
+}
+
 onMounted(() => {
   initMap()
 })
@@ -124,8 +191,13 @@ watch(() => props.markers, () => {
   updateMarkers()
 }, { deep: true })
 
+watch(() => props.polygons, () => {
+  if (window.google?.maps && map) updatePolygons()
+}, { deep: true })
+
 onBeforeUnmount(() => {
   clearMarkers()
+  clearPolygons()
   map = null
 })
 </script>

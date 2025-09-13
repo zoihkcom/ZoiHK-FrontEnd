@@ -142,6 +142,11 @@ const routes = [
     name: "FerryPiers",
     component: () => import("../views/FerryPiers.vue"),
   },
+  {
+    path: "/heritage/monuments",
+    name: "HeritageMonuments",
+    component: () => import("../views/HeritageMonuments.vue"),
+  },
 ];
 
 const router = createRouter({
