@@ -2,10 +2,10 @@
   <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
     <Navbar />
 
-    <div class="pt-20 px-4 sm:px-6 lg:px-8 pb-20">
-      <div class="max-w-7xl mx-auto">
+    <div class="pt-20 px-4 pb-4">
+      <div class="w-full">
         <!-- Header -->
-        <div class="text-center mb-8">
+        <div ref="headerRef" class="text-center mb-6">
           <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-2">
             <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               活动假期日历
@@ -25,10 +25,10 @@
         </div>
 
         <!-- Content -->
-        <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div v-else class="grid grid-cols-12 gap-6">
           <!-- Holidays List -->
-          <div class="lg:col-span-1">
-            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-100 p-4">
+          <div class="col-span-4">
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-100 p-4 overflow-y-auto" :style="{ height: availableHeight + 'px' }">
               <div class="flex items-center justify-between mb-3">
                 <h2 class="text-lg font-semibold text-slate-900">公众假期</h2>
               </div>
@@ -171,8 +171,8 @@
           </div>
 
           <!-- Calendar (FullCalendar) -->
-          <div class="lg:col-span-2">
-            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-100 p-2">
+          <div class="col-span-8">
+            <div ref="calendarWrap" class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-100 p-4" :style="{ height: availableHeight + 'px' }">
               <FullCalendar :options="calendarOptions" />
             </div>
           </div>
@@ -184,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watchEffect, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watchEffect, watch } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import request from '@/api/request.js'
 import FullCalendar from '@fullcalendar/vue3'
@@ -209,6 +209,33 @@ const calendarValue = ref(null)
 
 // Map: 'YYYY-MM-DD' -> [name, ...] for selected holidays
 const selectedDateMap = ref(new Map())
+
+// --- Dynamic available height (fill viewport below header) ---
+const headerRef = ref(null)
+const calendarWrap = ref(null)
+const viewportH = ref(typeof window !== 'undefined' ? window.innerHeight : 800)
+const updateViewport = () => { viewportH.value = typeof window !== 'undefined' ? window.innerHeight : 800 }
+const availableHeight = computed(() => {
+  const top = calendarWrap.value?.getBoundingClientRect?.().top ?? 0
+  const edgePadding = 16 // 对应页面全局 p-4
+  const h = Math.max(460, Math.floor(viewportH.value - top - edgePadding))
+  return h
+})
+
+const calendarHeight = computed(() => {
+  const cardPadding = 32 // wrapper p-4 垂直内边距之和
+  return Math.max(420, availableHeight.value - cardPadding)
+})
+
+onMounted(() => {
+  updateViewport()
+  window.addEventListener('resize', updateViewport)
+  // ensure first layout measured
+  nextTick(() => updateViewport())
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateViewport)
+})
 
 // ---------- FullCalendar: events & options ----------
 const holidayFcEvents = computed(() => {
@@ -419,7 +446,7 @@ const fcEvents = computed(() => [
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, iCalendarPlugin],
   initialView: 'dayGridMonth',
-  height: 600,
+  height: calendarHeight.value,
   expandRows: true,
   stickyHeaderDates: true,
   firstDay: 1,
