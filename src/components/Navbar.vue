@@ -249,6 +249,15 @@
                   </div>
                 </router-link>
 
+                <router-link to="/swimming-pools"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-life-ring w-4 text-sky-500"></i>
+                  <div>
+                    <div class="font-medium">泳池设施</div>
+                    <div class="text-xs text-gray-500">Swimming Pools</div>
+                  </div>
+                </router-link>
+
                 <router-link to="/aed"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-heartbeat w-4 text-red-500"></i>
@@ -498,6 +507,10 @@
           <router-link to="/water-dispensers" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-tint w-4 text-cyan-500 mr-2"></i>饮水机位置
+          </router-link>
+          <router-link to="/swimming-pools" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-life-ring w-4 text-sky-500 mr-2"></i>泳池设施
           </router-link>
           <router-link to="/aed" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
