@@ -229,6 +229,13 @@
                       title="用 Uber 从当前位置前往该站点">
                       <i class="fa fa-car"></i>
                     </button>
+                    <button @click="toggleStopFavorite(stop)"
+                      class="inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-colors"
+                      :class="isStopFavorite(stop.stop_id) ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'"
+                      :title="isStopFavorite(stop.stop_id) ? '取消收藏' : '收藏本站'">
+                      <i class="fa" :class="isStopFavorite(stop.stop_id) ? 'fa-star' : 'fa-star-o'"></i>
+                      <span class="ml-1">{{ isStopFavorite(stop.stop_id) ? '已收藏' : '收藏本站' }}</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -261,6 +268,10 @@ const stopCoords = ref({}) // { [stopId]: { lat, lng, updatedAt } }
 const coordsLoading = ref({}) // { [stopId]: boolean }
 const stopsEta = ref({}) // { [stopId]: EtaItem[] }
 const etaLoading = ref({}) // { [stopId]: boolean }
+
+// 本地收藏站点（与其他页面共用同一键）
+const FAVORITES_KEY = 'bus:favoriteStops'
+const favoriteStops = ref([]) // [{ stop, name_tc, name_en, lat, longitude, added_at }]
 
 // 将 regions 下的数组扁平化成列表，展示默认用方向1的起讫点
 const routes = computed(() => {
@@ -322,6 +333,50 @@ const formatTimestamp = (ts) => {
   }
 }
 
+// -------- 收藏站点（localStorage） --------
+const loadFavorites = () => {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    favoriteStops.value = Array.isArray(parsed) ? parsed : []
+  } catch (e) {
+    console.warn('读取收藏失败:', e)
+    favoriteStops.value = []
+  }
+}
+
+const saveFavorites = () => {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteStops.value))
+  } catch (e) {
+    console.warn('保存收藏失败:', e)
+  }
+}
+
+const isStopFavorite = (stopId) => {
+  if (!stopId) return false
+  return favoriteStops.value.some(s => s.stop === stopId)
+}
+
+const toggleStopFavorite = (stop) => {
+  const sId = stop?.stop_id
+  if (!sId) return
+  const idx = favoriteStops.value.findIndex(s => s.stop === sId)
+  if (idx >= 0) {
+    favoriteStops.value.splice(idx, 1)
+  } else {
+    favoriteStops.value.push({
+      stop: sId,
+      name_tc: stop.name_tc,
+      name_en: stop.name_en,
+      lat: stopCoords.value[sId]?.lat ?? null,
+      longitude: stopCoords.value[sId]?.lng ?? null,
+      added_at: new Date().toISOString(),
+    })
+  }
+  saveFavorites()
+}
+
 const fetchMinibusData = async () => {
   loading.value = true
   error.value = null
@@ -369,6 +424,7 @@ const clearSelected = () => {
 }
 
 onMounted(() => {
+  loadFavorites()
   fetchMinibusData()
 })
 

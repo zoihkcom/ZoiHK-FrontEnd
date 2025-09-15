@@ -235,6 +235,13 @@
                       title="用 Uber 从当前位置前往该站点">
                       <i class="fa fa-car"></i>
                     </button>
+                    <button @click="toggleStopFavorite(stop)"
+                      class="inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-colors"
+                      :class="isStopFavorite(stop.stop_info.stop) ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'"
+                      :title="isStopFavorite(stop.stop_info.stop) ? '取消收藏' : '收藏本站'">
+                      <i class="fa" :class="isStopFavorite(stop.stop_info.stop) ? 'fa-star' : 'fa-star-o'"></i>
+                      <span class="ml-1">{{ isStopFavorite(stop.stop_info.stop) ? '已收藏' : '收藏本站' }}</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -269,6 +276,10 @@ const routeStops = ref([])
 const stopsLoading = ref(false)
 const stopsError = ref(null)
 const stopsEta = ref({})
+
+// 本地收藏站点（localStorage）
+const FAVORITES_KEY = 'bus:favoriteStops'
+const favoriteStops = ref([]) // [{ stop, name_tc, name_en, lat, longitude, added_at }]
 
 // 计算属性
 const routes = computed(() => routeData.value.data || [])
@@ -322,10 +333,56 @@ const oppositeDirectionRoute = computed(() => {
   )
 })
 
+// 判断某站点是否收藏
+const isStopFavorite = (stopId) => {
+  if (!stopId) return false
+  return favoriteStops.value.some(s => s.stop === stopId)
+}
+
 // 方法
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '无数据'
   return new Date(timestamp).toLocaleString('zh-HK')
+}
+
+// 读取/保存收藏（站点）
+const loadFavorites = () => {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    favoriteStops.value = Array.isArray(parsed) ? parsed : []
+  } catch (e) {
+    console.warn('读取收藏失败:', e)
+    favoriteStops.value = []
+  }
+}
+
+const saveFavorites = () => {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteStops.value))
+  } catch (e) {
+    console.warn('保存收藏失败:', e)
+  }
+}
+
+// 切换收藏状态（站点）
+const toggleStopFavorite = (stop) => {
+  const s = stop?.stop_info
+  if (!s?.stop) return
+  const idx = favoriteStops.value.findIndex(x => x.stop === s.stop)
+  if (idx >= 0) {
+    favoriteStops.value.splice(idx, 1)
+  } else {
+    favoriteStops.value.push({
+      stop: s.stop,
+      name_tc: s.name_tc,
+      name_en: s.name_en,
+      lat: s.lat,
+      longitude: s.longitude,
+      added_at: new Date().toISOString()
+    })
+  }
+  saveFavorites()
 }
 
 const fetchRoutes = async () => {
@@ -532,6 +589,7 @@ const openUberForStop = (stop) => {
 }
 // 生命周期
 onMounted(() => {
+  loadFavorites()
   fetchRoutes()
 })
 </script>

@@ -138,6 +138,11 @@ const routes = [
     component: () => import("../views/WaterDispensers.vue"),
   },
   {
+    path: "/aed",
+    name: "AED",
+    component: () => import("../views/AED.vue"),
+  },
+  {
     path: "/ferry-piers",
     name: "FerryPiers",
     component: () => import("../views/FerryPiers.vue"),

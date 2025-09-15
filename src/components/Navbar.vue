@@ -248,6 +248,15 @@
                     <div class="text-xs text-gray-500">公共饮水设施</div>
                   </div>
                 </router-link>
+
+                <router-link to="/aed"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-heartbeat w-4 text-red-500"></i>
+                  <div>
+                    <div class="font-medium">AED 急救设备</div>
+                    <div class="text-xs text-gray-500">自动体外除颤器</div>
+                  </div>
+                </router-link>
               </div>
             </div>
           </div>
@@ -489,6 +498,10 @@
           <router-link to="/water-dispensers" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-tint w-4 text-cyan-500 mr-2"></i>饮水机位置
+          </router-link>
+          <router-link to="/aed" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-heartbeat w-4 text-red-500 mr-2"></i>AED 急救设备
           </router-link>
         </div>
 
