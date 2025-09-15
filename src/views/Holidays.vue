@@ -62,6 +62,49 @@
                 </div>
               </n-collapse-transition>
 
+              <!-- 即将举办活动 -->
+              <n-divider style="margin: 12px 0;" />
+              <div class="mb-2 flex items-center justify-between">
+                <n-checkbox
+                  :checked="upcomingAllSelected"
+                  :indeterminate="upcomingSomeSelected && !upcomingAllSelected"
+                  @update:checked="onToggleUpcoming"
+                >
+                  即将举办活动
+                </n-checkbox>
+                <n-button
+                  size="small"
+                  tertiary
+                  circle
+                  @click="toggleUpcomingExpand"
+                  :title="upcoming.expanded ? '收起列表' : '展开列表'"
+                >
+                  <i :class="['fa', upcoming.expanded ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                </n-button>
+              </div>
+              <n-collapse-transition :show="upcoming.expanded">
+                <div class="mt-2">
+                  <div v-if="upcoming.loading" class="flex justify-center py-2"><n-spin size="small" /></div>
+                  <div v-else-if="upcoming.error" class="text-xs text-red-500 py-2">{{ upcoming.error }}</div>
+                  <div v-else>
+                    <div v-if="!upcoming.items.length" class="text-xs text-slate-500 py-2">暂无活动</div>
+                    <div v-else class="max-h-[40vh] overflow-y-auto pr-1">
+                      <n-checkbox-group v-model:value="upcoming.selectedIds">
+                        <div v-for="(ev, idx) in upcoming.items" :key="ev.id" class="py-2 px-2 rounded-lg hover:bg-slate-50">
+                          <n-checkbox :value="ev.id">
+                            <div class="flex flex-col">
+                              <span class="text-slate-900">{{ ev.title }}</span>
+                              <span class="text-xs text-slate-500">{{ formatEventDateRange(ev.start_date, ev.end_date) }}</span>
+                              <span v-if="ev.location" class="text-xs text-slate-400">{{ ev.location }}</span>
+                            </div>
+                          </n-checkbox>
+                        </div>
+                      </n-checkbox-group>
+                    </div>
+                  </div>
+                </div>
+              </n-collapse-transition>
+
               <!-- 活动分类 -->
               <n-divider style="margin: 12px 0;" />
               <div class="mb-2">
@@ -209,6 +252,69 @@ const categories = ref(categoryDefs.map(c => ({
   selectedIds: [] // 勾选的活动ID
 })))
 
+// Upcoming events (InvestHK)
+const upcoming = ref({
+  expanded: false,
+  loading: false,
+  error: '',
+  items: [],
+  selectedIds: []
+})
+
+const genUpcomingId = (it, idx) => {
+  const base = `${it?.link || ''}|${it?.title || ''}|${it?.start_date || ''}`
+  return base || `up-${idx}`
+}
+
+const loadUpcoming = async () => {
+  if (upcoming.value.loading || upcoming.value.items.length) return
+  upcoming.value.loading = true
+  upcoming.value.error = ''
+  try {
+    const res = await request.get('https://www1.investhk.gov.hk/api/upcoming-events')
+    const raw = Array.isArray(res?.data?._item) ? res.data._item : []
+    upcoming.value.items = raw.map((it, idx) => ({
+      id: genUpcomingId(it, idx),
+      title: it.title,
+      image: it.image,
+      image_alt: it.image_alt,
+      link: it.link,
+      start_date: it.start_date,
+      end_date: it.end_date && String(it.end_date).trim() !== '' ? it.end_date : undefined,
+      display_date: it.display_date,
+      display_time: it.display_time,
+      location: it.location,
+      summary: it.summary
+    }))
+  } catch (e) {
+    console.error('loadUpcoming error', e)
+    upcoming.value.error = '加载即将举办活动失败，请稍后重试'
+  } finally {
+    upcoming.value.loading = false
+  }
+}
+
+const toggleUpcomingExpand = async () => {
+  upcoming.value.expanded = !upcoming.value.expanded
+  if (upcoming.value.expanded && upcoming.value.items.length === 0 && !upcoming.value.loading) {
+    await loadUpcoming()
+  }
+}
+
+const onToggleUpcoming = async (checked) => {
+  if (checked) {
+    if (upcoming.value.items.length === 0 && !upcoming.value.loading) {
+      await loadUpcoming()
+    }
+    upcoming.value.selectedIds = upcoming.value.items.map(it => it.id)
+  } else {
+    upcoming.value.selectedIds = []
+  }
+}
+
+const upcomingAllSelected = computed(() => upcoming.value.items.length > 0 && upcoming.value.selectedIds && upcoming.value.selectedIds.length === upcoming.value.items.length)
+const upcomingSomeSelected = computed(() => (upcoming.value.selectedIds && upcoming.value.selectedIds.length > 0))
+
 const loadCategory = async (cat) => {
   if (!cat || cat.loading) return
   cat.loading = true
@@ -282,9 +388,32 @@ const categoryFcEvents = computed(() => {
   return arr
 })
 
+const upcomingFcEvents = computed(() => {
+  const arr = []
+  const up = upcoming.value
+  if (!up.selectedIds || up.selectedIds.length === 0) return arr
+  for (const it of up.items) {
+    if (!up.selectedIds.includes(it.id)) continue
+    const start = it.start_date || null
+    const end = it.end_date && it.end_date.trim() !== '' ? it.end_date : undefined
+    if (!start) continue
+    arr.push({
+      id: `up-${it.id}`,
+      title: it.title,
+      start,
+      end,
+      allDay: true,
+      url: it.link || undefined,
+      color: '#0ea5e9' // sky-500
+    })
+  }
+  return arr
+})
+
 const fcEvents = computed(() => [
   ...holidayFcEvents.value,
-  ...categoryFcEvents.value
+  ...categoryFcEvents.value,
+  ...upcomingFcEvents.value
 ])
 
 const calendarOptions = computed(() => ({
