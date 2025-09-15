@@ -32,6 +32,46 @@
 
         <!-- Content -->
         <div v-else>
+          <!-- Fares (Fixed) -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden border border-slate-100 mb-8">
+            <div class="p-4 border-b border-slate-100">
+              <h2 class="text-lg font-semibold text-slate-900">票价信息</h2>
+              <p class="text-sm text-slate-600">以下为4条线路的固定票价，由数据维护</p>
+            </div>
+            <div class="p-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div v-for="fare in fares" :key="fare.id" class="p-4 rounded-lg border border-slate-200 bg-white">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-medium text-slate-900">{{ fare.name }}</h3>
+                    <span class="text-xs text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">
+                      固定票价
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <span v-if="fare.monthly != null" class="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md">
+                      月票：{{ formatPrice(fare.monthly) }}
+                    </span>
+                    <span v-if="fare.studentMonthly != null" class="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md">
+                      学生月票：{{ formatPrice(fare.studentMonthly) }}
+                    </span>
+                    <span v-if="fare.multi != null" class="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md">
+                      多程票：{{ formatPrice(fare.multi) }}
+                    </span>
+                    <span v-if="fare.adult != null" class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md">
+                      成人：{{ formatPrice(fare.adult) }}
+                    </span>
+                    <span v-if="fare.child != null" class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-md">
+                      儿童：{{ formatPrice(fare.child) }}
+                    </span>
+                    <span v-if="fare.senior != null" class="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-md">
+                      65岁以上：{{ formatPrice(fare.senior) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Stats -->
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
@@ -452,6 +492,21 @@ const mapCenterOverride = ref(null)
 const finalCenter = computed(() => mapCenterOverride.value || mapCenter.value)
 const focusMarker = (pier) => {
   mapCenterOverride.value = { lat: pier.lat, lng: pier.long }
+}
+
+// ----- Fixed Fares for 4 routes -----
+const fares = ref([
+  { id: 1, name: '线路1', monthly: 827, studentMonthly: 579, multi: 242, adult: 27.5, child: 13.7, senior: 13.7 },
+  { id: 2, name: '线路2', monthly: 777, studentMonthly: 543, multi: 195, adult: 22.1, child: 11, senior: 11 },
+  { id: 3, name: '线路3', monthly: 676, studentMonthly: 473, multi: 174, adult: 19.8, child: 9.9, senior: 9.9 },
+  { id: 4, name: '线路4', adult: 18.7, child: 9.3, senior: 9.3 }
+])
+
+const formatPrice = (v) => {
+  if (v === null || v === undefined) return '—'
+  const n = Number(v)
+  if (Number.isNaN(n)) return String(v)
+  return `HK$ ${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}`
 }
 
 </script>
