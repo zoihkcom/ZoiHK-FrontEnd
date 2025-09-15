@@ -33,7 +33,7 @@
         <!-- Content -->
         <div v-else>
           <!-- Stats -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
               <div class="text-2xl font-bold text-blue-600">{{ piers.length }}</div>
               <div class="text-sm text-slate-500">码头数量</div>
@@ -45,6 +45,151 @@
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
               <div class="text-2xl font-bold text-purple-600">{{ failedCount }}</div>
               <div class="text-sm text-slate-500">失败数量</div>
+            </div>
+            <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
+              <div class="text-2xl font-bold text-orange-600">{{ routes.length }}</div>
+              <div class="text-sm text-slate-500">渡轮线路</div>
+            </div>
+          </div>
+
+          <!-- Routes Section -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden border border-slate-100 mb-8">
+            <div class="p-4 border-b border-slate-100">
+              <h2 class="text-lg font-semibold text-slate-900">渡轮线路</h2>
+              <p class="text-sm text-slate-600">点击线路查看时间表和实时到港信息</p>
+            </div>
+            <div class="p-4">
+              <div v-if="routesLoading" class="flex justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-3 text-slate-600">正在加载线路...</span>
+              </div>
+              <div v-else-if="routes.length === 0" class="text-center py-8 text-slate-500">
+                暂无线路数据
+              </div>
+              <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div v-for="route in routes" :key="route.route_id"
+                  @click="selectRoute(route)"
+                  :class="[
+                    'p-4 rounded-lg border border-slate-200 cursor-pointer transition-all hover:border-blue-300 hover:shadow-sm',
+                    selectedRoute?.route_id === route.route_id ? 'border-blue-500 bg-blue-50' : 'bg-white'
+                  ]">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-medium text-slate-900">{{ route.route_name_sc }}</h3>
+                    <span class="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                      Route {{ route.route_id }}
+                    </span>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-1">{{ route.route_name_en }}</p>
+                  <div class="flex items-center text-sm text-slate-500">
+                    <i class="fa fa-arrow-right mr-2"></i>
+                    <span>{{ route.origin_sc }} ⇄ {{ route.destination_sc }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Route Details -->
+          <div v-if="selectedRoute" class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden border border-slate-100 mb-8">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">{{ selectedRoute.route_name_sc }} - 时间表</h2>
+                <p class="text-sm text-slate-600">{{ selectedRoute.origin_sc }} ⇄ {{ selectedRoute.destination_sc }}</p>
+              </div>
+              <button @click="refreshETA" :disabled="etaLoading"
+                class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                <i class="fa fa-refresh mr-2" :class="{ 'animate-spin': etaLoading }"></i>
+                刷新ETA
+              </button>
+            </div>
+            <div class="p-4">
+              <div v-if="timeTableLoading || etaLoading" class="flex justify-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="ml-3 text-slate-600">正在加载时间表...</span>
+              </div>
+              <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Inbound -->
+                <div class="bg-green-50 rounded-lg p-4">
+                  <h3 class="font-medium text-green-800 mb-3 flex items-center">
+                    <i class="fa fa-arrow-left mr-2"></i>
+                    {{ getDirectionText('inbound') }} (往{{ selectedRoute.origin_sc }})
+                  </h3>
+                  
+                  <!-- ETA -->
+                  <div class="mb-4">
+                    <h4 class="text-sm font-medium text-green-700 mb-2">实时到港</h4>
+                    <div class="space-y-1">
+                      <div v-for="eta in getRouteETA(selectedRoute.route_id, 'inbound')" :key="eta.session_time"
+                        class="bg-white rounded p-2 text-sm">
+                        <div class="flex justify-between">
+                          <span class="text-slate-600">班次: {{ eta.session_time }}</span>
+                          <span class="font-medium text-green-600">{{ formatTime(eta.ETA) }}</span>
+                        </div>
+                      </div>
+                      <div v-if="getRouteETA(selectedRoute.route_id, 'inbound').length === 0"
+                        class="text-xs text-slate-500 text-center py-2">
+                        暂无实时数据
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Schedule -->
+                  <div>
+                    <h4 class="text-sm font-medium text-green-700 mb-2">时间表</h4>
+                    <div class="max-h-40 overflow-y-auto space-y-1">
+                      <div v-for="schedule in getRouteTimeTable(selectedRoute.route_id, 'inbound')" :key="schedule.time || schedule.departure_time"
+                        class="bg-white rounded p-2 text-sm text-slate-600">
+                        {{ schedule.time || schedule.departure_time || '--' }}
+                      </div>
+                      <div v-if="getRouteTimeTable(selectedRoute.route_id, 'inbound').length === 0"
+                        class="text-xs text-slate-500 text-center py-2">
+                        暂无时间表数据
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Outbound -->
+                <div class="bg-blue-50 rounded-lg p-4">
+                  <h3 class="font-medium text-blue-800 mb-3 flex items-center">
+                    <i class="fa fa-arrow-right mr-2"></i>
+                    {{ getDirectionText('outbound') }} (往{{ selectedRoute.destination_sc }})
+                  </h3>
+                  
+                  <!-- ETA -->
+                  <div class="mb-4">
+                    <h4 class="text-sm font-medium text-blue-700 mb-2">实时到港</h4>
+                    <div class="space-y-1">
+                      <div v-for="eta in getRouteETA(selectedRoute.route_id, 'outbound')" :key="eta.session_time"
+                        class="bg-white rounded p-2 text-sm">
+                        <div class="flex justify-between">
+                          <span class="text-slate-600">班次: {{ eta.session_time }}</span>
+                          <span class="font-medium text-blue-600">{{ formatTime(eta.ETA) }}</span>
+                        </div>
+                      </div>
+                      <div v-if="getRouteETA(selectedRoute.route_id, 'outbound').length === 0"
+                        class="text-xs text-slate-500 text-center py-2">
+                        暂无实时数据
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Schedule -->
+                  <div>
+                    <h4 class="text-sm font-medium text-blue-700 mb-2">时间表</h4>
+                    <div class="max-h-40 overflow-y-auto space-y-1">
+                      <div v-for="schedule in getRouteTimeTable(selectedRoute.route_id, 'outbound')" :key="schedule.time || schedule.departure_time"
+                        class="bg-white rounded p-2 text-sm text-slate-600">
+                        {{ schedule.time || schedule.departure_time || '--' }}
+                      </div>
+                      <div v-if="getRouteTimeTable(selectedRoute.route_id, 'outbound').length === 0"
+                        class="text-xs text-slate-500 text-center py-2">
+                        暂无时间表数据
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -107,10 +252,18 @@
 import { ref, computed, onMounted } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import GoogleMap from '@/components/GoogleMap.vue'
+import request from '@/api/request.js'
 
 const loading = ref(true)
 const error = ref('')
 const piers = ref([])
+const routes = ref([])
+const selectedRoute = ref(null)
+const timeTables = ref({})
+const etaData = ref({})
+const routesLoading = ref(false)
+const timeTableLoading = ref(false)
+const etaLoading = ref(false)
 
 const loadPiers = async () => {
   loading.value = true
@@ -154,12 +307,117 @@ const loadPiers = async () => {
   }
 }
 
+const loadRoutes = async () => {
+  routesLoading.value = true
+  try {
+    const response = await request.get('/ferry-pier/routes')
+    
+    if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      routes.value = response.data.data
+    } else {
+      throw new Error('线路数据格式错误')
+    }
+  } catch (e) {
+    console.error('加载线路数据失败:', e)
+    // 线路数据加载失败不影响码头显示
+  } finally {
+    routesLoading.value = false
+  }
+}
+
+const loadTimeTable = async (routeId, direction) => {
+  if (!routeId || !direction) return null
+  
+  const key = `${routeId}_${direction}`
+  timeTableLoading.value = true
+  
+  try {
+    const response = await request.get(`/ferry-pier/time_table/${routeId}/${direction}`)
+    
+    if (response.data && response.data.data) {
+      timeTables.value[key] = response.data.data
+      return response.data.data
+    }
+  } catch (e) {
+    console.error(`加载时间表失败 (${routeId}-${direction}):`, e)
+  } finally {
+    timeTableLoading.value = false
+  }
+  return null
+}
+
+const loadETA = async (routeId, direction) => {
+  if (!routeId || !direction) return null
+  
+  const key = `${routeId}_${direction}`
+  etaLoading.value = true
+  
+  try {
+    const response = await request.get(`/ferry-pier/eta/${routeId}/${direction}`)
+    
+    if (response.data && response.data.data) {
+      etaData.value[key] = response.data.data
+      return response.data.data
+    }
+  } catch (e) {
+    console.error(`加载ETA失败 (${routeId}-${direction}):`, e)
+  } finally {
+    etaLoading.value = false
+  }
+  return null
+}
+
 onMounted(() => {
   loadPiers()
+  loadRoutes()
 })
 
 const successfulCount = computed(() => piers.value.length)
 const failedCount = computed(() => Math.max(0, 6 - piers.value.length))
+
+const selectRoute = async (route) => {
+  selectedRoute.value = route
+  // 同时加载两个方向的时间表和ETA
+  await Promise.all([
+    loadTimeTable(route.route_id, 'inbound'),
+    loadTimeTable(route.route_id, 'outbound'),
+    loadETA(route.route_id, 'inbound'),
+    loadETA(route.route_id, 'outbound')
+  ])
+}
+
+const getRouteTimeTable = (routeId, direction) => {
+  const key = `${routeId}_${direction}`
+  return timeTables.value[key] || []
+}
+
+const getRouteETA = (routeId, direction) => {
+  const key = `${routeId}_${direction}`
+  return etaData.value[key] || []
+}
+
+const formatTime = (timeString) => {
+  if (!timeString) return '--'
+  try {
+    const date = new Date(timeString)
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return timeString
+  }
+}
+
+const getDirectionText = (direction) => {
+  return direction === 'inbound' ? '入港' : '出港'
+}
+
+const refreshETA = async () => {
+  if (!selectedRoute.value) return
+  
+  await Promise.all([
+    loadETA(selectedRoute.value.route_id, 'inbound'),
+    loadETA(selectedRoute.value.route_id, 'outbound')
+  ])
+}
 
 const mapCenter = computed(() => {
   if (!piers.value.length) return { lat: 22.3027, lng: 114.1772 }
