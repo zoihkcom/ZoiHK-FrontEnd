@@ -33,19 +33,32 @@
                 <h2 class="text-lg font-semibold text-slate-900">公众假期</h2>
               </div>
               <!-- 数据源选项：香港公共假期（选择后执行原本逻辑并在日历高亮） -->
-              <div class="mb-2 flex items-center justify-between">
-                <n-checkbox :checked="allSelected" :indeterminate="someSelected && !allSelected"
-                  @update:checked="onToggleHK">
-                  香港公共假期
-                </n-checkbox>
-                <n-button size="small" tertiary circle @click="showList = !showList"
-                  :title="showList ? '收起列表' : '展开列表'">
+              <div
+                class="mb-2 flex items-center justify-between px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                <div class="flex items-center gap-2">
+                  <n-checkbox
+                    :checked="allSelected"
+                    :indeterminate="someSelected && !allSelected"
+                    @update:checked="onToggleHK"
+                  >
+                    <span class="inline-flex items-center gap-2">
+                      <span class="text-sm text-slate-800">香港公共假期</span>
+                    </span>
+                  </n-checkbox>
+                </div>
+                <n-button
+                  size="small"
+                  quaternary
+                  circle
+                  @click="showList = !showList"
+                  :title="showList ? '收起列表' : '展开列表'"
+                >
                   <i :class="['fa', showList ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
                 </n-button>
               </div>
               <n-collapse-transition :show="showList">
-                <n-divider style="margin: 8px 0;" />
-                <div class="mb-3">
+                <div class="mt-2 mb-3">
                   <n-input v-model:value="keyword" clearable placeholder="搜索假期名称..." />
                 </div>
                 <div class="max-h-[60vh] overflow-y-auto pr-1">
@@ -63,18 +76,23 @@
               </n-collapse-transition>
 
               <!-- 即将举办活动 -->
-              <n-divider style="margin: 12px 0;" />
-              <div class="mb-2 flex items-center justify-between">
-                <n-checkbox
-                  :checked="upcomingAllSelected"
-                  :indeterminate="upcomingSomeSelected && !upcomingAllSelected"
-                  @update:checked="onToggleUpcoming"
-                >
-                  即将举办活动
-                </n-checkbox>
+              <div
+                class="mt-4 mb-2 flex items-center justify-between px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                <div class="flex items-center gap-2">
+                  <n-checkbox
+                    :checked="upcomingAllSelected"
+                    :indeterminate="upcomingSomeSelected && !upcomingAllSelected"
+                    @update:checked="onToggleUpcoming"
+                  >
+                    <span class="inline-flex items-center gap-2">
+                      <span class="text-sm text-slate-800">即将举办活动</span>
+                    </span>
+                  </n-checkbox>
+                </div>
                 <n-button
                   size="small"
-                  tertiary
+                  quaternary
                   circle
                   @click="toggleUpcomingExpand"
                   :title="upcoming.expanded ? '收起列表' : '展开列表'"
@@ -106,8 +124,7 @@
               </n-collapse-transition>
 
               <!-- 活动分类 -->
-              <n-divider style="margin: 12px 0;" />
-              <div class="mb-2">
+              <div class="mt-4 mb-2">
                 <h3 class="text-base font-semibold text-slate-900">活动分类</h3>
               </div>
               <div class="space-y-2">
