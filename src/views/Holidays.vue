@@ -111,14 +111,13 @@
                 <h3 class="text-base font-semibold text-slate-900">活动分类</h3>
               </div>
               <div class="space-y-2">
-                <div v-for="cat in categories" :key="cat.id" class="bg-slate-50 rounded-lg border border-slate-100 p-2">
+                <div v-for="cat in categories" :key="cat.id" class="py-2 px-2 rounded-lg hover:bg-slate-50">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                       <n-checkbox :checked="catAllSelected(cat)"
                         :indeterminate="catSomeSelected(cat) && !catAllSelected(cat)"
                         @update:checked="(v) => onToggleCategory(cat, v)">
                         <span class="inline-flex items-center gap-2">
-                          <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: cat.color }"></span>
                           <span class="text-sm text-slate-800">{{ cat.label }}</span>
                         </span>
                       </n-checkbox>
@@ -138,7 +137,7 @@
                         <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1">
                           <n-checkbox-group v-model:value="cat.selectedIds">
                             <div v-for="ev in cat.items" :key="ev.event_id"
-                              class="p-2 bg-white rounded-md border border-slate-100 hover:bg-slate-50">
+                              class="py-2 px-2 rounded-lg hover:bg-slate-50">
                               <n-checkbox :value="ev.event_id">
                                 <div class="flex flex-col">
                                   <span class="text-sm font-medium text-slate-900 leading-snug">{{ ev.event_summary
