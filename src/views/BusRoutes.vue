@@ -235,12 +235,12 @@
                       <i class="fa fa-car mr-1"></i>
                       Uber
                     </button>
-                    <button @click="toggleStopFavorite(stop)"
+                    <button @click="toggleStopFavorite(stop, $event)"
                       class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded transition-colors"
                       :class="isStopFavorite(stop.stop_info.stop) ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'"
-                      :title="isStopFavorite(stop.stop_info.stop) ? '取消收藏' : '收藏本站'">
-                      <i class="fa" :class="isStopFavorite(stop.stop_info.stop) ? 'fa-star' : 'fa-star-o'"></i>
-                      <span class="ml-1">{{ isStopFavorite(stop.stop_info.stop) ? '已收藏' : '收藏本站' }}</span>
+                      :title="isStopFavorite(stop.stop_info.stop) ? '取消收藏' : '收藏站台'">
+                      <i class="fa" :class="getFavoriteCategoryIcon(stop.stop_info.stop)"></i>
+                      <span class="ml-1">{{ getFavoriteCategoryText(stop.stop_info.stop) }}</span>
                     </button>
                   </div>
                 </div>
@@ -249,6 +249,29 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 收藏分类菜单 -->
+  <div v-if="showFavoriteMenu" class="fixed inset-0 z-[9999]" @click="closeFavoriteMenu">
+    <div class="absolute bg-white rounded-lg shadow-xl border border-gray-200 py-2 min-w-40"
+         :style="{ left: favoriteMenuPosition.x + 'px', top: (favoriteMenuPosition.y - 140) + 'px', transform: 'translateX(-50%)' }"
+         @click.stop>
+      <button @click="addFavoriteWithCategory(routeStops.find(s => s.stop_info.stop === showFavoriteMenu), 'normal')"
+              class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
+        <i class="fa fa-star mr-2 text-yellow-500"></i>
+        收藏站台
+      </button>
+      <button @click="addFavoriteWithCategory(routeStops.find(s => s.stop_info.stop === showFavoriteMenu), 'home')"
+              class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
+        <i class="fa fa-home mr-2 text-blue-500"></i>
+        设为家庭站台
+      </button>
+      <button @click="addFavoriteWithCategory(routeStops.find(s => s.stop_info.stop === showFavoriteMenu), 'office')"
+              class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
+        <i class="fa fa-building mr-2 text-green-500"></i>
+        设为办公室站台
+      </button>
     </div>
   </div>
 </template>
@@ -276,6 +299,10 @@ const routeStops = ref([])
 const stopsLoading = ref(false)
 const stopsError = ref(null)
 const stopsEta = ref({})
+
+// 收藏分类弹窗相关
+const showFavoriteMenu = ref(null) // 当前显示菜单的站点ID
+const favoriteMenuPosition = ref({ x: 0, y: 0 })
 
 // 本地收藏站点（localStorage）
 const FAVORITES_KEY = 'bus:favoriteStops'
@@ -366,23 +393,76 @@ const saveFavorites = () => {
 }
 
 // 切换收藏状态（站点）
-const toggleStopFavorite = (stop) => {
+const toggleStopFavorite = (stop, event) => {
   const s = stop?.stop_info
   if (!s?.stop) return
-  const idx = favoriteStops.value.findIndex(x => x.stop === s.stop)
-  if (idx >= 0) {
+  
+  const existing = favoriteStops.value.find(x => x.stop === s.stop)
+  if (existing) {
+    // 如果已收藏，直接取消收藏
+    const idx = favoriteStops.value.findIndex(x => x.stop === s.stop)
     favoriteStops.value.splice(idx, 1)
+    saveFavorites()
+    showFavoriteMenu.value = null
   } else {
-    favoriteStops.value.push({
-      stop: s.stop,
-      name_tc: s.name_tc,
-      name_en: s.name_en,
-      lat: s.lat,
-      longitude: s.longitude,
-      added_at: new Date().toISOString()
-    })
+    // 如果未收藏，显示分类菜单
+    const rect = event.target.getBoundingClientRect()
+    favoriteMenuPosition.value = {
+      x: rect.left + rect.width / 2,
+      y: rect.top
+    }
+    showFavoriteMenu.value = s.stop
   }
+}
+
+// 添加收藏（带分类）
+const addFavoriteWithCategory = (stop, category = 'normal') => {
+  const s = stop?.stop_info
+  if (!s?.stop) return
+  
+  favoriteStops.value.push({
+    stop: s.stop,
+    name_tc: s.name_tc,
+    name_en: s.name_en,
+    lat: s.lat,
+    longitude: s.longitude,
+    category: category, // 'normal', 'home', 'office'
+    added_at: new Date().toISOString()
+  })
   saveFavorites()
+  showFavoriteMenu.value = null
+}
+
+// 关闭收藏菜单
+const closeFavoriteMenu = () => {
+  showFavoriteMenu.value = null
+}
+
+// 获取收藏站点信息（包含分类）
+const getFavoriteInfo = (stopId) => {
+  return favoriteStops.value.find(s => s.stop === stopId)
+}
+
+// 获取收藏分类显示文字
+const getFavoriteCategoryText = (stopId) => {
+  const info = getFavoriteInfo(stopId)
+  if (!info) return '收藏站台'
+  switch (info.category) {
+    case 'home': return '家庭站台'
+    case 'office': return '办公室站台'
+    default: return '已收藏'
+  }
+}
+
+// 获取收藏分类图标
+const getFavoriteCategoryIcon = (stopId) => {
+  const info = getFavoriteInfo(stopId)
+  if (!info) return 'fa-star-o'
+  switch (info.category) {
+    case 'home': return 'fa-home'
+    case 'office': return 'fa-building'
+    default: return 'fa-star'
+  }
 }
 
 const fetchRoutes = async () => {
