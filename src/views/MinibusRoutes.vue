@@ -483,9 +483,18 @@ const fetchCurrentDirectionCoords = async () => {
 // 在地图查看单个站点
 const viewStopOnMap = (stop) => {
   if (!stop?.stop_id) return
-  const searchQuery = `香港${stop.name_tc || stop.name_en || '巴士站'}`
-  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
-  window.open(url, '_blank')
+  const coord = stopCoords.value[stop.stop_id]
+  
+  if (coord && Number.isFinite(coord.lat) && Number.isFinite(coord.lng)) {
+    // 使用经纬度坐标直接定位
+    const url = `https://www.google.com/maps/search/?api=1&query=${coord.lat}%2C${coord.lng}`
+    window.open(url, '_blank')
+  } else {
+    // 如果没有经纬度，则回退到搜索模式
+    const searchQuery = `香港${stop.name_tc || stop.name_en || '巴士站'}`
+    const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
+    window.open(url, '_blank')
+  }
 }
 
 // Google Maps 导航到站点

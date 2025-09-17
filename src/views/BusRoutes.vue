@@ -503,9 +503,19 @@ const openRouteOnMap = () => {
 const viewStopOnMap = (stop) => {
   if (!selectedRoute.value || !stop?.stop_info) return
   const s = stop.stop_info
-  const searchQuery = `香港${s.name_tc || s.name_en}巴士站`
-  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
-  window.open(url, '_blank') // 新标签页
+  const lat = Number(s.lat)
+  const lng = Number(s.longitude)
+  
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    // 使用经纬度坐标直接定位
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`
+    window.open(url, '_blank')
+  } else {
+    // 如果没有经纬度，则回退到搜索模式
+    const searchQuery = `香港${s.name_tc || s.name_en}巴士站`
+    const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
+    window.open(url, '_blank')
+  }
 }
 
 // 格式化ETA时间显示
