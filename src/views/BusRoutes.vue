@@ -255,20 +255,20 @@
   <!-- 收藏分类菜单 -->
   <div v-if="showFavoriteMenu" class="fixed inset-0 z-[9999]" @click="closeFavoriteMenu">
     <div class="absolute bg-white rounded-lg shadow-xl border border-gray-200 py-2 min-w-40"
-         :style="{ left: favoriteMenuPosition.x + 'px', top: (favoriteMenuPosition.y - 140) + 'px', transform: 'translateX(-50%)' }"
-         @click.stop>
+      :style="{ left: favoriteMenuPosition.x + 'px', top: (favoriteMenuPosition.y - 140) + 'px', transform: 'translateX(-50%)' }"
+      @click.stop>
       <button @click="addFavoriteWithCategory(routeStops.find(s => s.stop_info.stop === showFavoriteMenu), 'normal')"
-              class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
+        class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
         <i class="fa fa-star mr-2 text-yellow-500"></i>
         收藏站台
       </button>
       <button @click="addFavoriteWithCategory(routeStops.find(s => s.stop_info.stop === showFavoriteMenu), 'home')"
-              class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
+        class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
         <i class="fa fa-home mr-2 text-blue-500"></i>
         设为家庭站台
       </button>
       <button @click="addFavoriteWithCategory(routeStops.find(s => s.stop_info.stop === showFavoriteMenu), 'office')"
-              class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
+        class="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-left">
         <i class="fa fa-building mr-2 text-green-500"></i>
         设为办公室站台
       </button>
@@ -396,7 +396,7 @@ const saveFavorites = () => {
 const toggleStopFavorite = (stop, event) => {
   const s = stop?.stop_info
   if (!s?.stop) return
-  
+
   const existing = favoriteStops.value.find(x => x.stop === s.stop)
   if (existing) {
     // 如果已收藏，直接取消收藏
@@ -419,7 +419,7 @@ const toggleStopFavorite = (stop, event) => {
 const addFavoriteWithCategory = (stop, category = 'normal') => {
   const s = stop?.stop_info
   if (!s?.stop) return
-  
+
   favoriteStops.value.push({
     stop: s.stop,
     name_tc: s.name_tc,
@@ -573,7 +573,7 @@ const switchToOppositeDirection = async () => {
 // 在地图查看整条线路
 const openRouteOnMap = () => {
   if (!selectedRoute.value || !routeStops.value.length) return
-  
+
   // 收集所有站点的经纬度和名称
   const stopsData = routeStops.value
     .filter(stop => stop.stop_info && Number.isFinite(Number(stop.stop_info.lat)) && Number.isFinite(Number(stop.stop_info.longitude)))
@@ -583,7 +583,7 @@ const openRouteOnMap = () => {
       const name = stop.stop_info.name_tc || stop.stop_info.name_en || `站点${stop.seq}`
       return `${lat},${lng},${name}`
     })
-  
+
   if (stopsData.length === 0) {
     // 如果没有坐标数据，回退到搜索模式
     const { route, orig_tc, dest_tc } = selectedRoute.value
@@ -592,12 +592,12 @@ const openRouteOnMap = () => {
     window.open(url, '_blank')
     return
   }
-  
+
   // 构建新页面URL参数
   const params = new URLSearchParams({
     stops: stopsData.join('|')
   })
-  
+
   const url = `/route-map?${params.toString()}`
   window.open(url, '_blank')
 }
@@ -608,7 +608,7 @@ const viewStopOnMap = (stop) => {
   const s = stop.stop_info
   const lat = Number(s.lat)
   const lng = Number(s.longitude)
-  
+
   if (Number.isFinite(lat) && Number.isFinite(lng)) {
     // 使用经纬度坐标直接定位
     const url = `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`
@@ -641,9 +641,19 @@ const formatETA = (etaString) => {
 const navigateToStop = (stop) => {
   if (!stop?.stop_info) return
   const s = stop.stop_info
-  const destination = `香港${s.name_tc || s.name_en || '巴士站'}`
-  const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
-  window.open(url, '_blank')
+  const lat = Number(s.lat)
+  const lng = Number(s.longitude)
+  
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    // 使用经纬度坐标导航
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    window.open(url, '_blank')
+  } else {
+    // 如果没有经纬度，则回退到地名搜索
+    const destination = `香港${s.name_tc || s.name_en || '巴士站'}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+    window.open(url, '_blank')
+  }
 }
 
 // 使用 Uber 从当前位置前往该站点

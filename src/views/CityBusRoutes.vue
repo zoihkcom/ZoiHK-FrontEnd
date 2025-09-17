@@ -607,9 +607,19 @@ const viewStopOnMap = (stop) => {
 const navigateToStop = (stop) => {
   if (!stop?.stop_info) return
   const s = stop.stop_info
-  const destination = `香港${s.name_tc || s.name_en || '巴士站'}`
-  const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
-  window.open(url, '_blank')
+  const lat = Number(s.lat)
+  const lng = Number(s.longitude)
+  
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    // 使用经纬度坐标导航
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    window.open(url, '_blank')
+  } else {
+    // 如果没有经纬度，则回退到地名搜索
+    const destination = `香港${s.name_tc || s.name_en || '巴士站'}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+    window.open(url, '_blank')
+  }
 }
 
 // 使用 Uber 从当前位置前往该站点
