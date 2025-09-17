@@ -13,7 +13,8 @@
               香港公共单车泊位信息
             </span>
           </h1>
-          <p class="text-lg text-slate-600 mb-6">查看香港各区公共单车泊位分布情况</p>
+          <p class="text-lg text-slate-600 mb-2">查看香港各区公共单车泊位分布情况</p>
+          <p class="text-sm text-slate-500 mb-6">数据来源：康乐及文化事务署辖下场地内公共单车泊位</p>
         </div>
 
         <!-- Loading State -->

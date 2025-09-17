@@ -143,7 +143,7 @@
                     <div class="flex items-center gap-2 text-sm text-slate-500">
                       <i class="fa fa-map-marker"></i>
                       <span>{{ space.SubDistrict_tc || space.SubDistrict }} - {{ space.District_tc || space.District
-                        }}</span>
+                      }}</span>
                     </div>
                   </div>
                   <div class="text-right">
