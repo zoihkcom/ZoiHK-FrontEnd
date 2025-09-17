@@ -155,6 +155,30 @@
                     <div class="text-xs text-gray-500">Uber & 出租车</div>
                   </div>
                 </router-link>
+
+                <div class="border-t border-gray-100 my-2"></div>
+
+                <div class="px-3 py-1">
+                  <div class="text-xs font-medium text-gray-500 mb-2">停车服务</div>
+                </div>
+
+                <router-link to="/carparks"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-car w-4 text-purple-500"></i>
+                  <div>
+                    <div class="font-medium">停车场信息</div>
+                    <div class="text-xs text-gray-500">车位与收费</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/metered-parking"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-clock-o w-4 text-amber-500"></i>
+                  <div>
+                    <div class="font-medium">咪錶停车位</div>
+                    <div class="text-xs text-gray-500">街边计时停车</div>
+                  </div>
+                </router-link>
               </div>
             </div>
           </div>
@@ -210,15 +234,6 @@
                   <div>
                     <div class="font-medium">法定古迹</div>
                     <div class="text-xs text-gray-500">Monuments</div>
-                  </div>
-                </router-link>
-
-                <router-link to="/carparks"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-car w-4 text-purple-500"></i>
-                  <div>
-                    <div class="font-medium">停车场信息</div>
-                    <div class="text-xs text-gray-500">车位与收费</div>
                   </div>
                 </router-link>
 
@@ -468,6 +483,18 @@
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-car w-4 text-yellow-500 mr-2"></i>打车服务
           </router-link>
+
+          <div class="px-6 py-1 mt-2">
+            <div class="text-xs font-medium text-gray-500">停车服务</div>
+          </div>
+          <router-link to="/carparks" @click="isOpen = false"
+            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-car w-4 text-purple-500 mr-2"></i>停车场信息
+          </router-link>
+          <router-link to="/metered-parking" @click="isOpen = false"
+            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-clock-o w-4 text-amber-500 mr-2"></i>咪錶停车位
+          </router-link>
         </div>
 
         <!-- Mobile Facilities & Nearby Section -->
@@ -487,10 +514,6 @@
           <router-link to="/schools" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-graduation-cap w-4 text-green-500 mr-2"></i>学校信息
-          </router-link>
-          <router-link to="/carparks" @click="isOpen = false"
-            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-car w-4 text-purple-500 mr-2"></i>停车场信息
           </router-link>
           <router-link to="/fehd" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">

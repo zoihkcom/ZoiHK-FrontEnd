@@ -162,6 +162,11 @@ const routes = [
     name: "HeritageMonuments",
     component: () => import("../views/HeritageMonuments.vue"),
   },
+  {
+    path: "/metered-parking",
+    name: "MeteredParking",
+    component: () => import("../views/MeteredParking.vue"),
+  },
 ];
 
 const router = createRouter({
