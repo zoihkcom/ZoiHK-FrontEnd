@@ -215,26 +215,27 @@
                   </div>
 
                   <!-- 操作按钮 -->
-                  <div class="mt-2 flex items-center gap-2">
+                  <div class="mt-2 grid grid-cols-2 gap-2">
                     <button @click="viewStopOnMap(stop)"
-                      class="inline-flex items-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors"
+                      class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors"
                       title="在地图查看该站">
                       <i class="fa fa-map-marker mr-1"></i>
                       在地图查看
                     </button>
                     <button v-if="stopCoords[stop.stop_id]" @click="navigateToStop(stop)"
-                      class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                      class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
                       title="Google Maps导航到该站">
-                      <i class="fa fa-directions mr-1"></i>
-                      导航
+                      <i class="fa fa-location-arrow mr-1"></i>
+                      导航到站台
                     </button>
                     <button v-if="stopCoords[stop.stop_id]" @click="openUberForStop(stop)"
-                      class="inline-flex items-center justify-center w-7 h-7 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded transition-colors"
+                      class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-gray-900 hover:bg-gray-800 rounded transition-colors"
                       title="用 Uber 从当前位置前往该站点">
-                      <i class="fa fa-car"></i>
+                      <i class="fa fa-car mr-1"></i>
+                      Uber
                     </button>
                     <button @click="toggleStopFavorite(stop)"
-                      class="inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-colors"
+                      class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded transition-colors"
                       :class="isStopFavorite(stop.stop_id) ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'"
                       :title="isStopFavorite(stop.stop_id) ? '取消收藏' : '收藏本站'">
                       <i class="fa" :class="isStopFavorite(stop.stop_id) ? 'fa-star' : 'fa-star-o'"></i>
