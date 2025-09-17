@@ -141,10 +141,9 @@
             <div class="flex items-center space-x-2">
               <!-- 方向切换按钮 -->
               <button v-if="oppositeDirectionRoute" @click="switchToOppositeDirection"
-                class="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded transition-colors"
+                class="text-gray-500 hover:text-gray-700 transition-colors"
                 :title="`切换到${oppositeDirectionRoute.bound === 'O' ? '去程' : '回程'}方向`">
-                <i class="fa fa-exchange mr-1"></i>
-                切换到{{ oppositeDirectionRoute.bound === 'O' ? '去程' : '回程' }}
+                <i class="fa fa-exchange"></i>
               </button>
               <button @click="openRouteOnMap" class="text-gray-500 hover:text-gray-700 transition-colors"
                 title="在地图查看整条线路">

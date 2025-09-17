@@ -134,10 +134,9 @@
             </div>
             <div class="flex items-center space-x-2">
               <button @click="switchDirection"
-                class="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded transition-colors"
+                class="text-gray-500 hover:text-gray-700 transition-colors"
                 :title="`切换到${currentDirectionIndex === 0 ? '回程' : '去程'}方向`">
-                <i class="fa fa-exchange mr-1"></i>
-                切换{{ currentDirectionIndex === 0 ? '回程' : '去程' }}
+                <i class="fa fa-exchange"></i>
               </button>
               <button @click="openRouteOnMap" class="text-gray-500 hover:text-gray-700 transition-colors"
                 title="在地图查看整条线路">
