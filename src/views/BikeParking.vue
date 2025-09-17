@@ -10,22 +10,22 @@
         <div class="text-center mb-8">
           <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
             <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              香港咪錶停车位信息
+              香港公共单车泊位信息
             </span>
           </h1>
-          <p class="text-lg text-slate-600 mb-6">查看香港各区咪錶停车位分布情况</p>
+          <p class="text-lg text-slate-600 mb-6">查看香港各区公共单车泊位分布情况</p>
         </div>
 
         <!-- Loading State -->
         <div v-if="loading" class="flex justify-center items-center py-20">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <span class="ml-4 text-slate-600">正在加载咪錶停车位数据...</span>
+          <span class="ml-4 text-slate-600">正在加载公共单车泊位数据...</span>
         </div>
 
         <!-- Error State -->
         <div v-else-if="error" class="text-center py-20">
           <div class="text-red-500 text-lg mb-4">{{ error }}</div>
-          <button @click="loadMeteredParkingData"
+          <button @click="loadBikeParkingData"
             class="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors">
             重试
           </button>
@@ -37,31 +37,31 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
               <div class="text-2xl font-bold text-blue-600">{{ totalSpaces }}</div>
-              <div class="text-sm text-slate-500">停车位总数</div>
+              <div class="text-sm text-slate-500">泊位总数</div>
             </div>
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
-              <div class="text-xl font-bold text-green-600">{{ totalPoles }}</div>
-              <div class="text-sm text-slate-500">咪錶总数</div>
+              <div class="text-xl font-bold text-green-600">{{ totalLocations }}</div>
+              <div class="text-sm text-slate-500">地点总数</div>
             </div>
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
-              <div class="text-xl font-bold text-purple-600">{{ regionCount }}</div>
-              <div class="text-sm text-slate-500">地区数量</div>
+              <div class="text-xl font-bold text-purple-600">{{ districtCount }}</div>
+              <div class="text-sm text-slate-500">覆盖地区</div>
             </div>
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
-              <div class="text-xl font-bold text-orange-600">{{ districtCount }}</div>
-              <div class="text-sm text-slate-500">区域数量</div>
+              <div class="text-xl font-bold text-orange-600">{{ Math.round(averageSpaces) }}</div>
+              <div class="text-sm text-slate-500">平均泊位数</div>
             </div>
             <div class="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center shadow-sm">
-              <div class="text-xl font-bold text-sky-600">{{ vehicleTypes.length }}</div>
-              <div class="text-sm text-slate-500">车型种类</div>
+              <div class="text-xl font-bold text-sky-600">{{ largestLocation.spaces }}</div>
+              <div class="text-sm text-slate-500">最大泊位数</div>
             </div>
           </div>
 
           <!-- Map View -->
           <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm overflow-hidden border border-slate-100 mb-8">
             <div class="p-4 border-b border-slate-100">
-              <h2 class="text-lg font-semibold text-slate-900">咪錶停车位分布地图</h2>
-              <p class="text-sm text-slate-600">使用 Google 地图显示筛选后的咪錶停车位标记</p>
+              <h2 class="text-lg font-semibold text-slate-900">公共单车泊位分布地图</h2>
+              <p class="text-sm text-slate-600">使用 Google 地图显示筛选后的单车泊位标记</p>
             </div>
             <div class="p-2">
               <GoogleMap :center="mapCenter" :zoom="12" :markers="mapMarkers" />
@@ -77,7 +77,7 @@
                 <i class="fa fa-map-marker-alt text-blue-500"></i>
                 <div class="flex-1 relative">
                   <input ref="searchInputRef" v-model="locationSearchQuery" @input="onLocationSearchInput"
-                    @focus="showSuggestions" @blur="hideLocationSuggestions" placeholder="搜索地点（显示周围2公里内的咪錶停车位）..."
+                    @focus="showSuggestions" @blur="hideLocationSuggestions" placeholder="搜索地点（显示周围2公里内的单车泊位）..."
                     class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
                 </div>
                 <button v-if="selectedLocation" @click="clearLocationSearch"
@@ -90,9 +90,8 @@
               <div v-if="selectedLocation" class="mt-2 p-2 bg-blue-50 rounded-lg">
                 <div class="text-sm text-blue-700">
                   <i class="fa fa-location-arrow mr-2"></i>
-                  正在显示 <span class="font-medium">{{ locationSearchQuery }}</span> 周围 2 公里内的 {{
-                    nearbyMeteredSpaces.length
-                  }} 个咪錶停车位
+                  正在显示 <span class="font-medium">{{ locationSearchQuery }}</span> 周围 2 公里内的 {{ nearbyBikeParkings.length
+                  }} 个单车泊位
                 </div>
               </div>
             </div>
@@ -115,76 +114,71 @@
             <!-- 原有筛选器 -->
             <div class="flex flex-col sm:flex-row gap-4">
               <div class="flex-1">
-                <n-input v-model:value="searchQuery" clearable placeholder="搜索街道名称或地址..." />
+                <n-input v-model:value="searchQuery" clearable placeholder="搜索地点名称或地址..." />
               </div>
               <div class="w-full sm:w-56">
-                <n-select v-model:value="selectedRegion" :options="regionOptions" clearable placeholder="全部地区" />
-              </div>
-              <div class="w-full sm:w-56">
-                <n-select v-model:value="selectedDistrict" :options="districtOptions" clearable placeholder="全部区域" />
-              </div>
-              <div class="w-full sm:w-56">
-                <n-select v-model:value="selectedVehicleType" :options="vehicleTypeOptions" clearable
-                  placeholder="全部车型" />
+                <n-select v-model:value="selectedDistrict" :options="districtOptions" clearable placeholder="全部地区" />
               </div>
             </div>
           </div>
 
-          <!-- Metered Parking List -->
+          <!-- Bike Parking List -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div v-for="space in nearbyMeteredSpaces" :key="space.ParkingSpaceId"
+            <div v-for="parking in nearbyBikeParkings" :key="parking.GmlID"
               class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-slate-100">
 
               <div class="p-6">
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-slate-900 mb-1">{{ space.Street_tc || space.Street }}</h3>
-                    <p class="text-sm text-slate-600 mb-2">{{ space.SectionOfStreet_tc || space.SectionOfStreet }}</p>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-1">{{ parking.Name_cn || parking.Name_en }}</h3>
+                    <p class="text-sm text-slate-600 mb-2">{{ parking.Address_cn || parking.Address_en }}</p>
                     <div class="flex items-center gap-2 text-sm text-slate-500">
                       <i class="fa fa-map-marker"></i>
-                      <span>{{ space.SubDistrict_tc || space.SubDistrict }} - {{ space.District_tc || space.District
-                        }}</span>
+                      <span>{{ parking.District_cn || parking.District_en }}</span>
                     </div>
                   </div>
                   <div class="text-right">
                     <span
-                      class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full mb-1">
-                      {{ getVehicleTypeLabel(space.VehicleType) }}
+                      class="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full mb-1">
+                      {{ parking.No_of_parking_spaces_cn || parking.No_of_parking_spaces_en }} 个泊位
                     </span>
-                    <div class="text-xs text-slate-500">{{ space.Region_tc || space.Region }}</div>
+                    <div class="text-xs text-slate-500">康乐署管理</div>
                   </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-2 gap-4 mb-4">
                   <div class="text-center">
-                    <div class="text-lg font-semibold text-green-600">{{ space.PoleId }}</div>
-                    <div class="text-xs text-slate-500">咪錶编号</div>
+                    <div class="text-2xl font-semibold text-blue-600">{{ parking.No_of_parking_spaces_cn || parking.No_of_parking_spaces_en }}</div>
+                    <div class="text-xs text-slate-500">停车泊位</div>
                   </div>
                   <div class="text-center">
-                    <div class="text-lg font-semibold text-blue-600">{{ space.LPP }}</div>
-                    <div class="text-xs text-slate-500">最长停车(分钟)</div>
-                  </div>
-                  <div class="text-center">
-                    <div class="text-lg font-semibold text-purple-600">HK${{ space.PaymentUnit }}</div>
-                    <div class="text-xs text-slate-500">计费周期价格</div>
+                    <div class="text-lg font-semibold text-green-600">
+                      {{ parking.Name_cn && parking.Name_cn.includes('繳費') || 
+                           parking.Name_en && parking.Name_en.includes('charge') ? '收费' : '免费' }}
+                    </div>
+                    <div class="text-xs text-slate-500">泊位类型</div>
                   </div>
                 </div>
 
                 <div class="border-t border-slate-100 pt-4">
                   <div class="flex flex-wrap gap-2 mb-3">
                     <span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">
-                      停车位: {{ space.ParkingSpaceId }}
+                      ID: {{ parking.GmlID.split('.')[1] }}
                     </span>
                     <span class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-md font-medium">
-                      计费周期: {{ space.TimeUnit }}分钟
+                      公共单车停放
                     </span>
-                    <span class="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-md font-medium">
-                      {{ getOperatingPeriodLabel(space.OperatingPeriod) }}
+                    <span v-if="parking.Name_cn && parking.Name_cn.includes('繳費')" 
+                      class="px-2 py-1 bg-amber-100 text-amber-600 text-xs rounded-md font-medium">
+                      收费泊位
+                    </span>
+                    <span v-else class="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-md font-medium">
+                      免费泊位
                     </span>
                   </div>
 
                   <div class="flex gap-2">
-                    <button @click="viewOnMap(space)"
+                    <button @click="viewOnMap(parking)"
                       class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                       <i class="fa fa-map mr-2"></i>
                       地图查看
@@ -196,12 +190,12 @@
           </div>
 
           <!-- Empty State -->
-          <div v-if="nearbyMeteredSpaces.length === 0" class="text-center py-16">
+          <div v-if="nearbyBikeParkings.length === 0" class="text-center py-16">
             <div class="mb-6">
-              <i class="fa fa-search text-6xl text-slate-300"></i>
+              <i class="fa fa-bicycle text-6xl text-slate-300"></i>
             </div>
             <h3 class="text-xl font-semibold text-slate-900 mb-2">
-              {{ selectedLocation ? '该地点周围2公里内未找到咪錶停车位' : '未找到匹配的咪錶停车位' }}
+              {{ selectedLocation ? '该地点周围2公里内未找到单车泊位' : '未找到匹配的单车泊位' }}
             </h3>
             <p class="text-slate-600 mb-6">
               {{ selectedLocation ? '请尝试搜索其他地点或调整筛选器' : '请尝试调整搜索条件或筛选器' }}
@@ -262,100 +256,73 @@ const suggestionBoxStyle = computed(() => {
 
 const loading = ref(true)
 const error = ref('')
-const meteredParkingSpaces = ref([])
+const bikeParkings = ref([])
 const searchQuery = ref('')
-const selectedRegion = ref('')
 const selectedDistrict = ref('')
-const selectedVehicleType = ref('')
 
 // 数据加载函数
-const loadMeteredParkingData = async () => {
+const loadBikeParkingData = async () => {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await fetch('/metered-packing.json')
+    const url = 'https://portal.csdi.gov.hk/server/services/common/lcsd_rcd_1700484367321_53237/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=geotagging&outputFormat=geojson'
+    const response = await fetch(url)
     if (!response.ok) {
-      throw new Error('Failed to load metered parking data')
+      throw new Error('Failed to load bike parking data')
     }
     const data = await response.json()
-    meteredParkingSpaces.value = data
+    bikeParkings.value = data.features.map(feature => ({
+      ...feature.properties,
+      coordinates: feature.geometry.coordinates
+    }))
   } catch (err) {
-    error.value = '加载咪錶停车位数据失败，请稍后重试'
-    console.error('Error loading metered parking data:', err)
+    error.value = '加载公共单车泊位数据失败，请稍后重试'
+    console.error('Error loading bike parking data:', err)
   } finally {
     loading.value = false
   }
 }
 
-// 车型标签映射
-const getVehicleTypeLabel = (type) => {
-  const typeMap = {
-    'A': '一般车辆 (私家车等)',
-    'C': '旅游巴 (Coaches)',
-    'G': '货车 (Goods Vehicles)'
-  }
-  return typeMap[type] || type
-}
-
-// 运营期间标签映射
-const getOperatingPeriodLabel = (period) => {
-  const periodMap = {
-    'A': '周一至周六 08:00-24:00',
-    'B': '周一至周六 08:00-20:00',
-    'D': '周一至周六 08:00-24:00；周日假期 10:00-22:00',
-    'E': '每日 07:00-20:00',
-    'F': '每日 08:00-21:00',
-    'H': '每日 08:00-20:00',
-    'J': '每日 08:00-24:00',
-    'N': '每日 19:00-24:00',
-    'P': '周一至周六 08:00-20:00',
-    'Q': '周一至周六 08:00-20:00；周日假期 10:00-22:00',
-    'S': '复杂时段（详见说明）'
-  }
-  return periodMap[period] || period
-}
-
 // 统计数据
-const totalSpaces = computed(() => meteredParkingSpaces.value.length)
-
-const totalPoles = computed(() => {
-  return new Set(meteredParkingSpaces.value.map(space => space.PoleId)).size
+const totalSpaces = computed(() => {
+  return bikeParkings.value.reduce((sum, parking) => {
+    return sum + parseInt(parking.No_of_parking_spaces_cn || parking.No_of_parking_spaces_en || 0)
+  }, 0)
 })
 
-const regionCount = computed(() => {
-  return new Set(meteredParkingSpaces.value.map(space => space.Region_tc || space.Region)).size
-})
+const totalLocations = computed(() => bikeParkings.value.length)
 
 const districtCount = computed(() => {
-  return new Set(meteredParkingSpaces.value.map(space => space.District_tc || space.District)).size
+  return new Set(bikeParkings.value.map(parking => parking.District_cn || parking.District_en)).size
 })
 
-const regions = computed(() => {
-  return [...new Set(meteredParkingSpaces.value.map(space => space.Region_tc || space.Region))].sort()
+const averageSpaces = computed(() => {
+  if (bikeParkings.value.length === 0) return 0
+  return totalSpaces.value / bikeParkings.value.length
+})
+
+const largestLocation = computed(() => {
+  if (bikeParkings.value.length === 0) return { spaces: 0, name: '' }
+  const largest = bikeParkings.value.reduce((max, parking) => {
+    const spaces = parseInt(parking.No_of_parking_spaces_cn || parking.No_of_parking_spaces_en || 0)
+    return spaces > max.spaces ? { spaces, name: parking.Name_cn || parking.Name_en } : max
+  }, { spaces: 0, name: '' })
+  return largest
 })
 
 const districts = computed(() => {
-  return [...new Set(meteredParkingSpaces.value.map(space => space.District_tc || space.District))].sort()
+  return [...new Set(bikeParkings.value.map(parking => parking.District_cn || parking.District_en))].sort()
 })
 
-const vehicleTypes = computed(() => {
-  return [...new Set(meteredParkingSpaces.value.map(space => space.VehicleType))].sort()
-})
-
-const regionOptions = computed(() => regions.value.map(r => ({ label: r, value: r })))
 const districtOptions = computed(() => districts.value.map(d => ({ label: d, value: d })))
-const vehicleTypeOptions = computed(() => vehicleTypes.value.map(v => ({
-  label: getVehicleTypeLabel(v),
-  value: v
-})))
 
 // 更新地图中心点和标记
 const mapCenter = computed(() => {
   if (selectedLocation.value) {
     return selectedLocation.value
   }
-  const first = nearbyMeteredSpaces.value[0]
+  const first = nearbyBikeParkings.value[0]
   if (first && first.Latitude && first.Longitude) {
     return { lat: Number(first.Latitude), lng: Number(first.Longitude) }
   }
@@ -363,14 +330,14 @@ const mapCenter = computed(() => {
 })
 
 const mapMarkers = computed(() => {
-  const markers = nearbyMeteredSpaces.value
-    .filter(s => s.Latitude && s.Longitude)
-    .map(s => ({
-      lat: Number(s.Latitude),
-      lng: Number(s.Longitude),
-      title: `${s.Street_tc || s.Street} - ${s.ParkingSpaceId}`,
-      // 咪錶停车位使用橙色停车标记
-      icon: 'https://maps.google.com/mapfiles/ms/icons/parking_lot_maps.png'
+  const markers = nearbyBikeParkings.value
+    .filter(p => p.Latitude && p.Longitude)
+    .map(p => ({
+      lat: Number(p.Latitude),
+      lng: Number(p.Longitude),
+      title: `${p.Name_cn || p.Name_en} - ${p.No_of_parking_spaces_cn || p.No_of_parking_spaces_en}个泊位`,
+      // 单车泊位使用绿色单车图标
+      icon: 'https://maps.google.com/mapfiles/ms/icons/cycling.png'
     }))
 
   // 如果有选中的地点，添加醒目的红色图钉标记
@@ -387,34 +354,23 @@ const mapMarkers = computed(() => {
   return markers
 })
 
-// 计算指定位置周围的咪錶停车位
-const nearbyMeteredSpaces = computed(() => {
+// 计算指定位置周围的单车泊位
+const nearbyBikeParkings = computed(() => {
   // 先应用原有的筛选条件
-  let filtered = meteredParkingSpaces.value
+  let filtered = bikeParkings.value
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(space =>
-      (space.Street_tc || space.Street || '').toLowerCase().includes(query) ||
-      (space.SectionOfStreet_tc || space.SectionOfStreet || '').toLowerCase().includes(query) ||
-      (space.SubDistrict_tc || space.SubDistrict || '').toLowerCase().includes(query)
-    )
-  }
-
-  if (selectedRegion.value) {
-    filtered = filtered.filter(space =>
-      (space.Region_tc || space.Region) === selectedRegion.value
+    filtered = filtered.filter(parking =>
+      (parking.Name_cn || parking.Name_en || '').toLowerCase().includes(query) ||
+      (parking.Address_cn || parking.Address_en || '').toLowerCase().includes(query)
     )
   }
 
   if (selectedDistrict.value) {
-    filtered = filtered.filter(space =>
-      (space.District_tc || space.District) === selectedDistrict.value
+    filtered = filtered.filter(parking => 
+      (parking.District_cn || parking.District_en) === selectedDistrict.value
     )
-  }
-
-  if (selectedVehicleType.value) {
-    filtered = filtered.filter(space => space.VehicleType === selectedVehicleType.value)
   }
 
   // 如果没有选中地点，返回所有筛选后的结果
@@ -425,13 +381,13 @@ const nearbyMeteredSpaces = computed(() => {
   // 如果有选中地点，再按距离筛选
   const { lat: targetLat, lng: targetLng } = selectedLocation.value
 
-  return filtered.filter(space => {
-    const spaceLat = Number(space.Latitude)
-    const spaceLng = Number(space.Longitude)
+  return filtered.filter(parking => {
+    const parkingLat = Number(parking.Latitude)
+    const parkingLng = Number(parking.Longitude)
 
-    if (!spaceLat || !spaceLng) return false
+    if (!parkingLat || !parkingLng) return false
 
-    const distance = calculateDistance(targetLat, targetLng, spaceLat, spaceLng)
+    const distance = calculateDistance(targetLat, targetLng, parkingLat, parkingLng)
     return distance <= searchRadius
   })
 })
@@ -559,25 +515,23 @@ function clearLocationSearch() {
   showLocationSuggestions.value = false
 }
 
-const viewOnMap = (space) => {
-  const lat = Number(space.Latitude)
-  const lng = Number(space.Longitude)
+const viewOnMap = (parking) => {
+  const lat = Number(parking.Latitude)
+  const lng = Number(parking.Longitude)
   const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
   window.open(url, '_blank')
 }
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedRegion.value = ''
   selectedDistrict.value = ''
-  selectedVehicleType.value = ''
   locationSearchQuery.value = ''
   selectedLocation.value = null
 }
 
 // 生命周期
 onMounted(async () => {
-  await loadMeteredParkingData()
+  await loadBikeParkingData()
   await initAMap()
 })
 </script>

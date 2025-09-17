@@ -179,6 +179,15 @@
                     <div class="text-xs text-gray-500">街边计时停车</div>
                   </div>
                 </router-link>
+
+                <router-link to="/bike-parking"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-bicycle w-4 text-green-500"></i>
+                  <div>
+                    <div class="font-medium">公共单车泊位</div>
+                    <div class="text-xs text-gray-500">单车停放点</div>
+                  </div>
+                </router-link>
               </div>
             </div>
           </div>
@@ -494,6 +503,10 @@
           <router-link to="/metered-parking" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-clock-o w-4 text-amber-500 mr-2"></i>咪錶停车位
+          </router-link>
+          <router-link to="/bike-parking" @click="isOpen = false"
+            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-bicycle w-4 text-green-500 mr-2"></i>公共单车泊位
           </router-link>
         </div>
 
