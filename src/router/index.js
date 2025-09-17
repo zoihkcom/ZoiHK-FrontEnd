@@ -128,6 +128,11 @@ const routes = [
     component: () => import("../views/Holidays.vue"),
   },
   {
+    path: "/route-map",
+    name: "RouteMap",
+    component: () => import("../views/RouteMap.vue"),
+  },
+  {
     path: "/route-planner",
     name: "RoutePlanner",
     component: () => import("../views/RoutePlanner.vue"),

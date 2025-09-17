@@ -139,6 +139,10 @@
                 <i class="fa fa-exchange mr-1"></i>
                 切换{{ currentDirectionIndex === 0 ? '回程' : '去程' }}
               </button>
+              <button @click="openRouteOnMap" class="text-gray-500 hover:text-gray-700 transition-colors"
+                title="在地图查看整条线路">
+                <i class="fa fa-map"></i>
+              </button>
               <button @click="clearSelected" class="text-gray-500 hover:text-gray-700 transition-colors">
                 <i class="fa fa-times text-xl"></i>
               </button>
@@ -612,5 +616,39 @@ const formatEtaDiff = (diff, timestamp) => {
     try { return new Date(timestamp).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' }) } catch { }
   }
   return ''
+}
+
+// 在地图查看整条线路
+const openRouteOnMap = () => {
+  if (!selectedRoute.value || !currentStops.value.length) return
+  
+  // 收集所有站点的经纬度和名称
+  const stopsData = currentStops.value
+    .filter(stop => stopCoords.value[stop.stop_id])
+    .map((stop, index) => {
+      const coord = stopCoords.value[stop.stop_id]
+      const name = stop.name_tc || stop.name_en || `站点${index + 1}`
+      return `${coord.lat},${coord.lng},${name}`
+    })
+  
+  if (stopsData.length === 0) {
+    // 如果没有坐标数据，回退到搜索模式
+    const { route_code } = selectedRoute.value
+    const direction = selectedRoute.value.directions[currentDirectionIndex.value]
+    if (direction) {
+      const searchQuery = `香港专线小巴${route_code}号线 ${direction.orig_tc}到${direction.dest_tc}`
+      const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
+      window.open(url, '_blank')
+    }
+    return
+  }
+  
+  // 构建新页面URL参数
+  const params = new URLSearchParams({
+    stops: stopsData.join('|')
+  })
+  
+  const url = `/route-map?${params.toString()}`
+  window.open(url, '_blank')
 }
 </script>

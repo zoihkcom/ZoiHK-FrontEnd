@@ -492,11 +492,34 @@ const switchToOppositeDirection = async () => {
 
 // 在地图查看整条线路
 const openRouteOnMap = () => {
-  if (!selectedRoute.value) return
-  const { route, orig_tc, dest_tc } = selectedRoute.value
-  const searchQuery = `香港巴士${route}号线 ${orig_tc}到${dest_tc}`
-  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
-  window.open(url, '_blank') // 新标签页
+  if (!selectedRoute.value || !routeStops.value.length) return
+  
+  // 收集所有站点的经纬度和名称
+  const stopsData = routeStops.value
+    .filter(stop => stop.stop_info && Number.isFinite(Number(stop.stop_info.lat)) && Number.isFinite(Number(stop.stop_info.longitude)))
+    .map(stop => {
+      const lat = Number(stop.stop_info.lat)
+      const lng = Number(stop.stop_info.longitude)
+      const name = stop.stop_info.name_tc || stop.stop_info.name_en || `站点${stop.seq}`
+      return `${lat},${lng},${name}`
+    })
+  
+  if (stopsData.length === 0) {
+    // 如果没有坐标数据，回退到搜索模式
+    const { route, orig_tc, dest_tc } = selectedRoute.value
+    const searchQuery = `香港巴士${route}号线 ${orig_tc}到${dest_tc}`
+    const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
+    window.open(url, '_blank')
+    return
+  }
+  
+  // 构建新页面URL参数
+  const params = new URLSearchParams({
+    stops: stopsData.join('|')
+  })
+  
+  const url = `/route-map?${params.toString()}`
+  window.open(url, '_blank')
 }
 
 // 在地图查看单个站点
