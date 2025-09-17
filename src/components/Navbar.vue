@@ -24,6 +24,12 @@
               <span class="text-xs text-gray-500">Data Hub</span>
             </div>
           </router-link>
+          <router-link to="/store" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+            <div class="flex flex-col items-center">
+              <span>商城</span>
+              <span class="text-xs text-gray-500">Store</span>
+            </div>
+          </router-link>
 
           <!-- City & Transit Dropdown -->
           <div class="relative">
@@ -428,6 +434,10 @@
         <router-link to="/datahub" @click="isOpen = false"
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
           信息中心
+        </router-link>
+        <router-link to="/store" @click="isOpen = false"
+          class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
+          商城
         </router-link>
 
         <!-- Mobile City & Transit Section -->
