@@ -81,7 +81,7 @@
             <span>•</span>
             <span>English</span>
             <span>•</span>
-            <a href="#" class="hover:text-white transition-colors">状态页面</a>
+            <router-link to="/status" class="hover:text-white transition-colors">状态页面</router-link>
           </div>
         </div>
       </div>

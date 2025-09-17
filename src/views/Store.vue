@@ -25,7 +25,7 @@
                   <path d="M20 20l-3.5-3.5" />
                 </svg>
                 <input class="flex-1 bg-transparent outline-none text-slate-700 placeholder:text-slate-400 text-lg"
-                  placeholder="你想找什么？例如：订阅、数据套餐、SIM卡、周边" />
+                  placeholder="你想找什么？例如：SIM卡、周边" />
               </div>
             </div>
           </div>
@@ -75,7 +75,7 @@
                     <p class="mt-6 text-xl text-slate-600 leading-relaxed">无限流量、本地通话、高速网络，香港生活必备。</p>
                   </div>
                   <div class="mt-8">
-                    <router-link to="/datahub"
+                    <router-link to="/"
                       class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors">
                       查看套餐
                       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -87,7 +87,7 @@
                 <div
                   class="lg:col-span-2 w-full h-48 lg:h-56 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 border border-slate-200 overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=400&h=300&fit=crop&crop=center"
+                    src="https://images.unsplash.com/photo-1562831915-6524120efded?q=80&w=1594&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                     alt="SIM卡" class="w-full h-full object-cover" />
                 </div>
               </div>
@@ -126,26 +126,6 @@
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Service bar -->
-        <div class="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          <div class="rounded-2xl bg-white border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div class="text-2xl mb-3">🚚</div>
-            <div class="text-sm text-slate-600 font-medium">快速访问与交付</div>
-          </div>
-          <div class="rounded-2xl bg-white border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div class="text-2xl mb-3">🔒</div>
-            <div class="text-sm text-slate-600 font-medium">安全支付与隐私</div>
-          </div>
-          <div class="rounded-2xl bg-white border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div class="text-2xl mb-3">💬</div>
-            <div class="text-sm text-slate-600 font-medium">7×24 支持</div>
-          </div>
-          <div class="rounded-2xl bg-white border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <div class="text-2xl mb-3">♻️</div>
-            <div class="text-sm text-slate-600 font-medium">灵活升级与退款</div>
           </div>
         </div>
       </div>

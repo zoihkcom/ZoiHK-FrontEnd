@@ -176,6 +176,11 @@ const routes = [
     name: "BikeParking",
     component: () => import("../views/BikeParking.vue"),
   },
+  {
+    path: "/status",
+    name: "Status",
+    component: () => import("../views/Status.vue"),
+  },
 ];
 
 const router = createRouter({
