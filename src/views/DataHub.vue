@@ -375,6 +375,20 @@ const modules = ref([
     apiDocs: 'https://data.gov.hk'
   },
   {
+    id: 'libraries',
+    title: '图书馆信息',
+    department: 'LCSD 康乐及文化事务署',
+    description: '固定、流动及自助图书馆位置、联系方式与开放时间',
+    category: 'education',
+    icon: 'fa fa-book',
+    color: 'bg-teal-500',
+    status: 'active',
+    tags: ['图书馆', '康文署', '公共设施'],
+    isFavorite: false,
+    route: '/libraries',
+    apiDocs: 'https://portal.csdi.gov.hk'
+  },
+  {
     id: 'minibus-routes',
     title: '专线小巴线路',
     department: 'TD 运输署',

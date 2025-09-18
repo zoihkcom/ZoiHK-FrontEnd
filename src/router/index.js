@@ -77,6 +77,11 @@ const routes = [
     component: () => import("../views/Schools.vue"),
   },
   {
+    path: "/libraries",
+    name: "Libraries",
+    component: () => import("../views/Libraries.vue"),
+  },
+  {
     path: "/wifi",
     name: "Wifi",
     component: () => import("../views/Wifi.vue"),
