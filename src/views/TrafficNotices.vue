@@ -5,7 +5,7 @@
     <div class="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
         <div class="text-center mb-12">
-          <span class="inline-flex items-center px-4 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700">
+          <span class="inline-flex items-center px-4 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
             香港运输署数据源
           </span>
           <h1 class="mt-4 text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight">
@@ -17,7 +17,7 @@
 
           <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:bg-emerald-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
               type="button"
               :disabled="isSelectedCategoryLoading || isSelectedCategoryRefreshing"
               @click="handleRefresh"
@@ -79,11 +79,11 @@
               :key="category.key"
               type="button"
               @click="selectCategory(category.key)"
-              class="bg-white border border-slate-200 rounded-2xl shadow-sm transition-shadow duration-200 p-6 flex flex-col gap-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+              class="bg-white border border-slate-200 rounded-2xl shadow-sm transition-shadow duration-200 p-6 flex flex-col gap-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
               :class="[
                 selectedCategoryKey === category.key
-                  ? 'border-emerald-500 ring-2 ring-emerald-100'
-                  : 'hover:shadow-md hover:border-emerald-200'
+                  ? 'border-blue-500 ring-2 ring-blue-100'
+                  : 'hover:shadow-md hover:border-blue-200'
               ]"
               :aria-pressed="selectedCategoryKey === category.key"
             >
