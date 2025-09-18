@@ -75,66 +75,68 @@
 
           <!-- Traffic Information -->
           <div v-if="trafficData && trafficData.length > 0"
-            class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-l-4 border-blue-500 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 mb-8">
-            <div class="flex items-start justify-between gap-4 mb-6">
-              <div class="flex items-center gap-3">
-                <div class="flex-shrink-0">
-                  <i class="fa fa-road text-xl text-blue-600"></i>
+            class="mb-10 rounded-3xl border border-slate-200/80 bg-white/95 p-7 sm:p-10 backdrop-blur-xl">
+            <div class="mb-2 flex flex-wrap items-start justify-between gap-6 sm:gap-8">
+              <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                  <i class="fa fa-road text-lg"></i>
                 </div>
-                <h3 class="text-xl font-bold text-blue-800">特别交通信息</h3>
+                <div class="space-y-1">
+                  <h3 class="text-2xl font-light tracking-tight text-slate-900">特别交通信息</h3>
+                  <p class="text-sm text-slate-500 sm:text-base">实时掌握道路状况，提前做好出行安排</p>
+                </div>
               </div>
               <button @click="refreshTrafficData" :disabled="trafficLoading"
-                class="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors">
-                <i v-if="trafficLoading" class="fa fa-spinner fa-spin mr-1"></i>
+                class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-medium text-slate-700 disabled:cursor-not-allowed disabled:opacity-60">
+                <i v-if="trafficLoading" class="fa fa-spinner fa-spin"></i>
                 {{ trafficLoading ? '刷新中...' : '刷新' }}
               </button>
             </div>
 
-            <div class="space-y-4 max-h-96 overflow-y-auto">
+            <div class="max-h-96 space-y-4 overflow-y-auto pr-1">
               <div v-for="(traffic, index) in trafficData" :key="traffic.id || index"
-                class="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
-                <div class="flex items-start justify-between gap-3 mb-3">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                      <h4 class="font-semibold text-slate-900 text-sm">{{ traffic.headingCn }}</h4>
-                      <span class="px-2 py-1 text-xs rounded-full font-medium"
-                        :class="getStatusClass(traffic.statusCn)">
-                        {{ traffic.statusCn }}
-                      </span>
-                    </div>
-                    <div class="text-sm text-slate-600 mb-2">
-                      <i class="fa fa-map-marker text-blue-500 mr-1"></i>
-                      {{ traffic.locationCn }}
-                      <span v-if="traffic.directionCn" class="ml-2">
-                        <i class="fa fa-arrow-right text-gray-400 mr-1"></i>
-                        往{{ traffic.directionCn }}方向
-                      </span>
-                    </div>
-                    <div v-if="traffic.nearLandmarkCn" class="text-xs text-slate-500 mb-2">
-                      <i class="fa fa-location-arrow mr-1"></i>
-                      近{{ traffic.nearLandmarkCn }}
-                    </div>
+                class="border-slate-200/80 bg-white/95 p-5 backdrop-blur-lg sm:p-6">
+                <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <h4 class="text-base font-medium tracking-tight text-slate-900">{{ traffic.headingCn }}</h4>
+                    <span
+                      class="inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                      :class="getStatusClass(traffic.statusCn)">
+                      {{ traffic.statusCn }}
+                    </span>
                   </div>
-                  <div class="text-xs text-slate-400">
-                    {{ formatTrafficTime(traffic.announcementDate) }}
+                  <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+                    <i class="fa fa-clock-o"></i>
+                    <span>{{ formatTrafficTime(traffic.announcementDate) }}</span>
                   </div>
                 </div>
 
-                <div class="text-sm text-slate-700 leading-relaxed bg-slate-50 rounded p-3">
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-600">
+                  <i class="fa fa-map-marker text-blue-500"></i>
+                  <span>{{ traffic.locationCn }}</span>
+                  <span v-if="traffic.directionCn" class="text-slate-400">· 往{{ traffic.directionCn }}方向</span>
+                </div>
+
+                <div v-if="traffic.nearLandmarkCn" class="mt-1 flex items-center gap-2 text-xs text-slate-400">
+                  <i class="fa fa-location-arrow text-violet-500"></i>
+                  <span>近{{ traffic.nearLandmarkCn }}</span>
+                </div>
+
+                <div
+                  class="mt-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-700">
                   {{ traffic.contentCn }}
                 </div>
 
-                <div v-if="traffic.incidentNumber" class="text-xs text-slate-400 mt-2 text-right">
-                  事故编号: {{ traffic.incidentNumber }}
+                <div v-if="traffic.incidentNumber" class="mt-3 text-right text-xs tracking-wide text-slate-400">
+                  事故编号：{{ traffic.incidentNumber }}
                 </div>
               </div>
             </div>
 
-            <div v-if="trafficError" class="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
-              <div class="flex items-center gap-2 text-red-700 text-sm">
-                <i class="fa fa-exclamation-triangle"></i>
-                <span>{{ trafficError }}</span>
-              </div>
+            <div v-if="trafficError"
+              class="mt-6 inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50/90 px-4 py-3 text-sm text-rose-700">
+              <i class="fa fa-exclamation-triangle"></i>
+              <span>{{ trafficError }}</span>
             </div>
           </div>
 
@@ -269,14 +271,14 @@ const loadCCTVData = async () => {
       imageLoaded: false,
       imageError: false
     }))
-    
+
     // 自动加载所有摄像头图片
     setTimeout(() => {
       cctvCameras.value.forEach(camera => {
         loadCameraImage(camera)
       })
     }, 500) // 延迟500ms开始加载图片，避免一次性请求过多
-    
+
   } catch (err) {
     error.value = '加载CCTV数据失败，请稍后重试'
     console.error('Error loading CCTV data:', err)
@@ -418,28 +420,25 @@ const formatTrafficTime = (timeString) => {
 
 // 获取交通状态样式类
 const getStatusClass = (status) => {
-  switch (status) {
-    case '完结':
-    case 'CLOSED':
-      return 'bg-green-100 text-green-800'
-    case '进行中':
-    case 'ONGOING':
-      return 'bg-red-100 text-red-800'
-    case '已更新':
-    case 'UPDATED':
-      return 'bg-yellow-100 text-yellow-800'
-    default:
-      return 'bg-gray-100 text-gray-800'
+  const rawStatus = status ? status.toString().trim() : ''
+  const normalized = rawStatus.toUpperCase()
+
+  if (rawStatus === '完结' || rawStatus === '已完结' || normalized === 'CLOSED') {
+    return 'border border-emerald-200 bg-emerald-50 text-emerald-600'
   }
+
+  if (rawStatus === '进行中' || rawStatus === '处理中' || normalized === 'ONGOING') {
+    return 'border border-rose-200 bg-rose-50 text-rose-600'
+  }
+
+  if (rawStatus === '已更新' || rawStatus === '更新' || normalized === 'UPDATED') {
+    return 'border border-amber-200 bg-amber-50 text-amber-600'
+  }
+
+  return 'border border-slate-200 bg-slate-100 text-slate-700'
 }
 
 onMounted(() => {
   loadAllData()
 })
 </script>
-
-<style scoped>
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
-}
-</style>
