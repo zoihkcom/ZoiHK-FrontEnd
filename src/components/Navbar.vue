@@ -142,6 +142,15 @@
                   </div>
                 </router-link>
 
+                <router-link to="/traffic-notices"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-bullhorn w-4 text-rose-500"></i>
+                  <div>
+                    <div class="font-medium">交通通告</div>
+                    <div class="text-xs text-gray-500">禁区 / 限速 / 封路</div>
+                  </div>
+                </router-link>
+
                 <div class="border-t border-gray-100 my-2"></div>
 
                 <router-link to="/flight"
@@ -498,6 +507,10 @@
           <router-link to="/cctv" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-video-camera w-4 text-gray-500 mr-2"></i>交通CCTV
+          </router-link>
+          <router-link to="/traffic-notices" @click="isOpen = false"
+            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-bullhorn w-4 text-rose-500 mr-2"></i>交通通告
           </router-link>
 
           <div class="px-6 py-1 mt-2">

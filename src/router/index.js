@@ -97,6 +97,11 @@ const routes = [
     component: () => import("../views/CCTV.vue"),
   },
   {
+    path: "/traffic-notices",
+    name: "TrafficNotices",
+    component: () => import("../views/TrafficNotices.vue"),
+  },
+  {
     path: "/events",
     name: "Events",
     component: () => import("../views/Events.vue"),
