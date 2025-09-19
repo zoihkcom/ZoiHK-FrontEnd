@@ -15,6 +15,11 @@ export const busApi = {
   getStopETA(stopId) {
     return request.get(`/bus/stop-eta/${stopId}`);
   },
+
+  // 获取线路详细数据
+  getRoute(route, direction, serviceType) {
+    return request.get(`/bus/route/${route}/${direction}/${serviceType}`);
+  },
 };
 
 export default busApi;
