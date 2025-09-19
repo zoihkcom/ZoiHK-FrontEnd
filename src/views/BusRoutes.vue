@@ -216,7 +216,7 @@
                   </div>
 
                   <!-- 在地图查看该站 -->
-                  <div class="mt-2 grid grid-cols-2 gap-2">
+                  <div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
                     <button @click="viewStopOnMap(stop)"
                       class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded transition-colors"
                       title="在地图查看该站">
@@ -242,6 +242,39 @@
                       <i class="fa" :class="getFavoriteCategoryIcon(stop.stop_info.stop)"></i>
                       <span class="ml-1">{{ getFavoriteCategoryText(stop.stop_info.stop) }}</span>
                     </button>
+                    <button @click="toggleOtherRoutes(stop)"
+                      class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded transition-colors"
+                      title="查看该站可搭乘的其它路线">
+                      <i class="fa fa-random mr-1"></i>
+                      查看其它路线
+                    </button>
+                  </div>
+                  <div v-if="isOtherRoutesVisible(stop.stop_info.stop)" class="mt-3">
+                    <div v-if="isOtherRoutesLoading(stop.stop_info.stop)"
+                      class="flex items-center text-xs text-gray-500">
+                      <i class="fa fa-spinner fa-spin mr-2"></i>
+                      正在载入其它路线...
+                    </div>
+                    <div v-else-if="getOtherRoutesError(stop.stop_info.stop)"
+                      class="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+                      {{ getOtherRoutesError(stop.stop_info.stop) }}
+                    </div>
+                    <div v-else>
+                      <div v-if="getOtherRoutes(stop.stop_info.stop).length > 0"
+                        class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 space-y-2">
+                        <div v-for="other in getOtherRoutes(stop.stop_info.stop)" :key="`${stop.stop_info.stop}-${other.route}-${other.bound}-${other.service_type}`"
+                          class="flex items-center text-xs text-slate-700 space-x-2">
+                          <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                            {{ other.route }}
+                          </span>
+                          <span class="flex items-center space-x-1 text-slate-600">
+                            <i class="fa fa-long-arrow-right text-slate-400"></i>
+                            <span>{{ other.destination || '目的地待获取' }}</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div v-else class="text-xs text-slate-500">该站暂无其它可用路线</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -307,6 +340,11 @@ const favoriteMenuPosition = ref({ x: 0, y: 0 })
 // 本地收藏站点（localStorage）
 const FAVORITES_KEY = 'bus:favoriteStops'
 const favoriteStops = ref([]) // [{ stop, name_tc, name_en, lat, longitude, added_at }]
+
+const activeOtherRoutesStop = ref(null)
+const stopOtherRoutes = ref({})
+const stopOtherRoutesError = ref({})
+const stopOtherRoutesLoading = ref({})
 
 // 计算属性
 const routes = computed(() => routeData.value.data || [])
@@ -465,6 +503,122 @@ const getFavoriteCategoryIcon = (stopId) => {
   }
 }
 
+const isOtherRoutesVisible = (stopId) => {
+  if (!stopId) return false
+  return activeOtherRoutesStop.value === stopId
+}
+
+const isOtherRoutesLoading = (stopId) => {
+  if (!stopId) return false
+  return Boolean(stopOtherRoutesLoading.value[stopId])
+}
+
+const getOtherRoutes = (stopId) => {
+  if (!stopId) return []
+  return stopOtherRoutes.value[stopId] || []
+}
+
+const getOtherRoutesError = (stopId) => {
+  if (!stopId) return null
+  return stopOtherRoutesError.value[stopId] || null
+}
+
+const loadOtherRoutesForStop = async (stopId) => {
+  if (!stopId) return
+
+  stopOtherRoutesLoading.value = { ...stopOtherRoutesLoading.value, [stopId]: true }
+  stopOtherRoutesError.value = { ...stopOtherRoutesError.value, [stopId]: null }
+
+  try {
+    const response = await fetch('/routeBusData.json', { cache: 'no-store' })
+    if (!response.ok) {
+      throw new Error('无法读取本地路线索引')
+    }
+    const dataset = await response.json()
+    const list = Array.isArray(dataset?.data) ? dataset.data : []
+    const currentRoute = selectedRoute.value
+    const currentRouteId = currentRoute ? String(currentRoute.route) : ''
+    const currentBound = currentRoute ? String(currentRoute.bound) : ''
+    const currentServiceType = currentRoute ? String(currentRoute.service_type) : ''
+
+    const seen = new Set()
+    const candidates = []
+
+    list.forEach((item) => {
+      if (!item || item.stop !== stopId) return
+      const key = `${item.route}-${item.bound}-${item.service_type}`
+      if (seen.has(key)) return
+      seen.add(key)
+
+      if (
+        item.route === currentRouteId &&
+        String(item.bound) === currentBound &&
+        String(item.service_type) === currentServiceType
+      ) {
+        return
+      }
+
+      candidates.push({
+        route: String(item.route),
+        bound: String(item.bound),
+        service_type: String(item.service_type)
+      })
+    })
+
+    if (candidates.length === 0) {
+      stopOtherRoutes.value = { ...stopOtherRoutes.value, [stopId]: [] }
+      return
+    }
+
+    const details = await Promise.all(candidates.map(async (candidate) => {
+      try {
+        const response = await busApi.getRoute(candidate.route, candidate.bound, candidate.service_type)
+        const detail = response?.data?.data
+        if (detail) {
+          return {
+            route: detail.route,
+            bound: detail.bound,
+            service_type: detail.service_type,
+            destination: detail.dest_sc || detail.dest_tc || detail.dest_en || ''
+          }
+        }
+      } catch (err) {
+        console.error(`获取线路 ${candidate.route} 详情失败:`, err)
+      }
+
+      return {
+        route: candidate.route,
+        bound: candidate.bound,
+        service_type: candidate.service_type,
+        destination: ''
+      }
+    }))
+
+    stopOtherRoutes.value = { ...stopOtherRoutes.value, [stopId]: details.filter(Boolean) }
+  } catch (err) {
+    console.error('获取其它路线数据失败:', err)
+    const message = err?.message || '无法读取其它路线数据'
+    stopOtherRoutesError.value = { ...stopOtherRoutesError.value, [stopId]: message }
+    stopOtherRoutes.value = { ...stopOtherRoutes.value, [stopId]: [] }
+  } finally {
+    stopOtherRoutesLoading.value = { ...stopOtherRoutesLoading.value, [stopId]: false }
+  }
+}
+
+const toggleOtherRoutes = async (stop) => {
+  const stopId = stop?.stop_info?.stop
+  if (!stopId) return
+
+  if (activeOtherRoutesStop.value === stopId) {
+    activeOtherRoutesStop.value = null
+    return
+  }
+
+  activeOtherRoutesStop.value = stopId
+
+  await loadOtherRoutesForStop(stopId)
+}
+
 const fetchRoutes = async () => {
   loading.value = true
   error.value = null
@@ -497,6 +651,7 @@ const fetchRouteStops = async (route) => {
   stopsError.value = null
   routeStops.value = []
   stopsEta.value = {}
+  activeOtherRoutesStop.value = null
 
   console.log('开始获取站点数据:', route)
 
@@ -560,6 +715,7 @@ const clearRouteStops = () => {
   routeStops.value = []
   stopsError.value = null
   stopsEta.value = {}
+  activeOtherRoutesStop.value = null
 }
 
 // 切换到相反方向
