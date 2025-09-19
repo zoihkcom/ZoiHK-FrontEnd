@@ -121,15 +121,11 @@
     </main>
     <Footer />
 
-    <n-modal v-model:show="showStops" :mask-closable="false" transform-origin="center" :style="modalStyle">
+    <n-modal v-model:show="showStops" :mask-closable="true" transform-origin="center" :style="modalStyle">
       <div class="bg-white rounded-xl p-6 max-h-[80vh] overflow-hidden flex flex-col">
         <div class="flex items-start justify-between mb-4">
           <div>
             <h2 class="text-2xl font-semibold text-slate-900">{{ selectedRoute?.route }} 路线详情</h2>
-            <p class="text-sm text-slate-500 mt-1">
-              {{ selectedRoute?.orig.zh }} -> {{ selectedRoute?.dest.zh }} | {{ selectedRoute?.orig.en }} -> {{
-                selectedRoute?.dest.en }}
-            </p>
           </div>
           <div class="flex items-center gap-3">
             <button type="button" @click="toggleDirection" :disabled="!hasReverseRoute"
@@ -158,15 +154,27 @@
         <div class="grid sm:grid-cols-2 gap-4 mb-4">
           <div class="bg-slate-50 rounded-xl p-4">
             <p class="text-xs text-slate-400 uppercase tracking-widest">服务类型</p>
-            <p class="text-base font-semibold text-slate-800">{{ selectedRoute?.serviceType || 'N/A' }}</p>
-          </div>
-          <div class="bg-slate-50 rounded-xl p-4">
-            <p class="text-xs text-slate-400 uppercase tracking-widest">行车方向</p>
-            <p class="text-base font-semibold text-slate-800">{{ directionLabel }}</p>
+            <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.serviceType || 'N/A' }}</p>
           </div>
           <div class="bg-slate-50 rounded-xl p-4" v-if="selectedRoute?.jt">
             <p class="text-xs text-slate-400 uppercase tracking-widest">官方行车时间 (JT)</p>
             <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.jt }}</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 mb-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex-1">
+              <p class="text-xs text-slate-400 uppercase tracking-widest">起点</p>
+              <p class="text-base font-semibold text-slate-800 mt-1">{{ selectedRoute?.orig.zh || '未知起点' }}</p>
+              <p class="text-xs text-slate-500">{{ selectedRoute?.orig.en || 'Unknown Origin' }}</p>
+            </div>
+            <div class="hidden sm:block h-12 w-px bg-slate-200"></div>
+            <div class="flex-1">
+              <p class="text-xs text-slate-400 uppercase tracking-widest">目的地</p>
+              <p class="text-base font-semibold text-slate-800 mt-1">{{ selectedRoute?.dest.zh || '未知目的地' }}</p>
+              <p class="text-xs text-slate-500">{{ selectedRoute?.dest.en || 'Unknown Destination' }}</p>
+            </div>
           </div>
         </div>
 
@@ -180,12 +188,24 @@
                 <p class="text-xs text-slate-400 mt-1">ID: {{ stop.id }}</p>
                 <p class="text-xs text-slate-400">Lat: {{ stop.lat }} | Lng: {{ stop.lng }}</p>
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-400 uppercase tracking-widest">票价</span>
-                <span class="inline-flex items-center px-3 py-1 rounded-xl"
-                  :class="stop.fare ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'">
-                  {{ stop.fare ? `HK$${stop.fare}` : '终点站' }}
-                </span>
+              <div class="flex flex-col sm:items-end gap-2 min-w-[180px]">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-slate-400 uppercase tracking-widest">票价</span>
+                  <span class="inline-flex items-center px-3 py-1 rounded-xl"
+                    :class="stop.fare ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'">
+                    {{ stop.fare ? `HK$${stop.fare}` : '终点站' }}
+                  </span>
+                </div>
+                <div class="flex flex-col sm:items-end gap-1">
+                  <span class="text-xs text-slate-400 uppercase tracking-widest">预计到达</span>
+                  <div class="flex flex-wrap gap-2 sm:justify-end">
+                    <span v-for="(badge, idx) in stop.etaBadges" :key="idx"
+                      :class="['inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium', badge.className]">
+                      {{ badge.text }}
+                    </span>
+                  </div>
+                  <p v-if="stop.etaRemark" class="text-[11px] text-slate-400">{{ stop.etaRemark }}</p>
+                </div>
               </div>
             </li>
           </ol>
@@ -196,11 +216,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { NModal } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
-import { fetchEtas } from "hk-bus-eta";
+import { fetchEtas } from 'hk-bus-eta'
 
 const COMPANY_MAP = {
   kmb: '九巴 KMB',
@@ -226,6 +246,9 @@ const displayCount = ref(100)
 const showStops = ref(false)
 const selectedRouteKey = ref('')
 const activeCompany = ref('')
+const holidays = ref([])
+const serviceDayMap = ref({})
+const etaState = reactive({})
 
 const modalStyle = reactive({
   width: '720px',
@@ -290,16 +313,6 @@ const companyOptionsForSelected = computed(() => {
   return selectedRoute.value.co.map((id) => ({ id, label: mapCompany(id) }))
 })
 
-const directionLabel = computed(() => {
-  if (!selectedRoute.value?.bound) return '未知方向'
-  const bound = selectedRoute.value.bound[activeCompany.value]
-  if (bound === 'O') return '往外站 (Outbound)'
-  if (bound === 'I') return '往入站 (Inbound)'
-  if (bound === 'OI') return '往去程'
-  if (bound === 'IO') return '往回程'
-  return '未知方向'
-})
-
 const stopIds = computed(() => {
   if (!selectedRoute.value?.stops) return []
   return selectedRoute.value.stops[activeCompany.value] || []
@@ -310,10 +323,83 @@ const activeFares = computed(() => {
   return selectedRoute.value.fares || []
 })
 
+const getEtaKey = (routeKey, companyId, seq) => `${routeKey}__${companyId}__${seq}`
+
+const etaTimeFormatter = new Intl.DateTimeFormat('zh-HK', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone: 'Asia/Hong_Kong',
+})
+
+const buildEtaBadge = (etaItem) => {
+  if (!etaItem?.eta) {
+    return {
+      text: '时间待定',
+      className: 'bg-slate-200 text-slate-500',
+    }
+  }
+  const etaDate = new Date(etaItem.eta)
+  if (Number.isNaN(etaDate.getTime())) {
+    return {
+      text: '时间待定',
+      className: 'bg-slate-200 text-slate-500',
+    }
+  }
+
+  const diffMinutes = Math.round((etaDate.getTime() - Date.now()) / 60000)
+  let displayText = ''
+  let toneClass = 'bg-blue-100 text-blue-700'
+
+  if (diffMinutes <= 1) {
+    displayText = '即将进站'
+    toneClass = 'bg-emerald-100 text-emerald-700'
+  } else if (diffMinutes < 60) {
+    displayText = `${diffMinutes} 分钟`
+    toneClass = diffMinutes <= 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+  } else {
+    displayText = etaTimeFormatter.format(etaDate)
+  }
+
+  const companyLabel = etaItem.co ? mapCompany(etaItem.co) : ''
+  const text = companyLabel ? `${displayText} · ${companyLabel}` : displayText
+
+  return {
+    text,
+    className: toneClass,
+  }
+}
+
 const stopDetails = computed(() => {
   if (!selectedRoute.value) return []
+  const routeKey = selectedRoute.value.key
+  const companyId = activeCompany.value
   return stopIds.value.map((stopId, index) => {
     const info = stopList.value[stopId] || {}
+    const cacheKey = getEtaKey(routeKey, companyId, index)
+    const etaRecords = etaState[cacheKey]
+    let etaBadges = []
+    let etaRemark = ''
+
+    if (etaRecords === undefined || etaRecords === null) {
+      etaBadges = [
+        {
+          text: '载入中',
+          className: 'bg-slate-200 text-slate-500',
+        },
+      ]
+    } else if (Array.isArray(etaRecords) && etaRecords.length) {
+      etaBadges = etaRecords.slice(0, 2).map((etaItem) => buildEtaBadge(etaItem))
+      etaRemark = etaRecords[0]?.remark?.zh || etaRecords[0]?.remark?.en || ''
+    } else {
+      etaBadges = [
+        {
+          text: '暂无班次',
+          className: 'bg-slate-200 text-slate-500',
+        },
+      ]
+    }
+
     return {
       id: stopId,
       index: index + 1,
@@ -322,6 +408,8 @@ const stopDetails = computed(() => {
       lat: info.location?.lat ?? 'N/A',
       lng: info.location?.lng ?? 'N/A',
       fare: index < activeFares.value.length ? activeFares.value[index] : null,
+      etaBadges,
+      etaRemark,
     }
   })
 })
@@ -345,6 +433,9 @@ const openRouteDetail = (item) => {
   const firstCompany = item.co?.[0] || 'kmb'
   activeCompany.value = firstCompany
   showStops.value = true
+  nextTick(() => {
+    loadEtasForStops()
+  })
 }
 
 const closeModal = () => {
@@ -353,6 +444,9 @@ const closeModal = () => {
 
 const setActiveCompany = (companyId) => {
   activeCompany.value = companyId
+  nextTick(() => {
+    loadEtasForStops()
+  })
 }
 
 const toggleDirection = () => {
@@ -361,6 +455,46 @@ const toggleDirection = () => {
   const currentCompany = activeCompany.value
   const companies = reverseRoute.value.co || []
   activeCompany.value = companies.includes(currentCompany) ? currentCompany : companies[0] || ''
+  nextTick(() => {
+    loadEtasForStops()
+  })
+}
+
+const loadEtasForStops = async () => {
+  const routeEntry = selectedRoute.value
+  const companyId = activeCompany.value
+  if (!routeEntry || !companyId) return
+
+  const stopSequence = routeEntry.stops?.[companyId] || []
+  if (!stopSequence.length) return
+
+  Object.keys(etaState).forEach((key) => {
+    if (key.startsWith(`${routeEntry.key}__`)) {
+      delete etaState[key]
+    }
+  })
+
+  for (let index = 0; index < stopSequence.length; index += 1) {
+    const cacheKey = getEtaKey(routeEntry.key, companyId, index)
+    etaState[cacheKey] = null
+    try {
+      const etas = await fetchEtas({
+        ...routeEntry,
+        co: [companyId],
+        stops: routeEntry.stops,
+        bound: routeEntry.bound || {},
+        stopList: stopList.value,
+        holidays: holidays.value,
+        serviceDayMap: serviceDayMap.value,
+        language: 'zh',
+        seq: index,
+      })
+      etaState[cacheKey] = etas
+    } catch (err) {
+      console.error('获取 ETA 失败', err)
+      etaState[cacheKey] = []
+    }
+  }
 }
 
 const loadRoutes = async () => {
@@ -375,6 +509,11 @@ const loadRoutes = async () => {
     const entries = Object.entries(data.routeList || {})
     routes.value = entries.map(([key, value]) => ({ key, ...value }))
     stopList.value = data.stopList || {}
+    holidays.value = data.holidays || []
+    serviceDayMap.value = data.serviceDayMap || {}
+    Object.keys(etaState).forEach((key) => {
+      delete etaState[key]
+    })
     displayCount.value = 100
   } catch (err) {
     error.value = err.message || '载入数据时出现未知错误'
