@@ -42,7 +42,7 @@
                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
                       <option value="all">全部公司</option>
                       <option v-for="option in companyFilterOptions" :key="option.id" :value="option.id">{{ option.label
-                      }}</option>
+                        }}</option>
                     </select>
                   </div>
                 </div>
@@ -132,12 +132,8 @@
             </p>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="toggleDirection"
-              :disabled="!hasReverseRoute"
-              class="flex items-center justify-center text-lg text-blue-500 hover:text-blue-600 transition-colors disabled:text-slate-300 disabled:cursor-not-allowed"
-            >
+            <button type="button" @click="toggleDirection" :disabled="!hasReverseRoute"
+              class="flex items-center justify-center text-lg text-blue-500 hover:text-blue-600 transition-colors disabled:text-slate-300 disabled:cursor-not-allowed">
               <i class="fa fa-exchange" aria-hidden="true"></i>
               <span class="sr-only">切换方向</span>
             </button>
@@ -196,7 +192,7 @@
         </div>
       </div>
     </n-modal>
-    </div>
+  </div>
 </template>
 
 <script setup>
@@ -204,6 +200,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { NModal } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
+import { fetchEtas } from "hk-bus-eta";
 
 const COMPANY_MAP = {
   kmb: '九巴 KMB',
@@ -388,5 +385,6 @@ const loadRoutes = async () => {
 
 onMounted(() => {
   loadRoutes()
+  // console.log(routes)
 })
 </script>

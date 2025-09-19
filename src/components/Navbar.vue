@@ -97,6 +97,15 @@
                   <div class="text-xs font-medium text-gray-500 mb-2">公共交通</div>
                 </div>
 
+                <router-link to="/bus"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-bus w-4 text-indigo-500"></i>
+                  <div>
+                    <div class="font-medium">公共交通</div>
+                    <div class="text-xs text-gray-500">路线与ETA</div>
+                  </div>
+                </router-link>
+
                 <router-link to="/subway"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-subway w-4 text-red-500"></i>
@@ -106,7 +115,7 @@
                   </div>
                 </router-link>
 
-                <router-link to="/bus-routes"
+                <!-- <router-link to="/bus-routes"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-bus w-4 text-blue-500"></i>
                   <div>
@@ -131,7 +140,7 @@
                     <div class="font-medium">专线小巴 Minibus</div>
                     <div class="text-xs text-gray-500">路线与站点</div>
                   </div>
-                </router-link>
+                </router-link> -->
 
                 <router-link to="/cctv"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -488,6 +497,10 @@
           <div class="px-6 py-1 mt-2">
             <div class="text-xs font-medium text-gray-500">公共交通</div>
           </div>
+          <router-link to="/bus" @click="isOpen = false"
+            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-exchange w-4 text-indigo-500 mr-2"></i>公交路线总览
+          </router-link>
           <router-link to="/subway" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-subway w-4 text-red-500 mr-2"></i>MTR地铁
