@@ -131,7 +131,18 @@
                 selectedRoute?.dest.en }}
             </p>
           </div>
-          <button @click="closeModal" class="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              @click="toggleDirection"
+              :disabled="!hasReverseRoute"
+              class="flex items-center justify-center text-lg text-blue-500 hover:text-blue-600 transition-colors disabled:text-slate-300 disabled:cursor-not-allowed"
+            >
+              <i class="fa fa-exchange" aria-hidden="true"></i>
+              <span class="sr-only">切换方向</span>
+            </button>
+            <button @click="closeModal" class="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+          </div>
         </div>
 
         <div
@@ -263,6 +274,20 @@ const hasMore = computed(() => displayCount.value < filteredRoutes.value.length)
 
 const selectedRoute = computed(() => routes.value.find((item) => item.key === selectedRouteKey.value) || null)
 
+const reverseRoute = computed(() => {
+  if (!selectedRoute.value) return null
+  const current = selectedRoute.value
+  const match = routes.value.find((item) => {
+    if (item.route !== current.route || item.key === current.key) return false
+    const sameZh = item.orig?.zh === current.dest?.zh && item.dest?.zh === current.orig?.zh
+    const sameEn = item.orig?.en === current.dest?.en && item.dest?.en === current.orig?.en
+    return sameZh || sameEn
+  })
+  return match || null
+})
+
+const hasReverseRoute = computed(() => Boolean(reverseRoute.value))
+
 const companyOptionsForSelected = computed(() => {
   if (!selectedRoute.value?.co) return []
   return selectedRoute.value.co.map((id) => ({ id, label: mapCompany(id) }))
@@ -331,6 +356,14 @@ const closeModal = () => {
 
 const setActiveCompany = (companyId) => {
   activeCompany.value = companyId
+}
+
+const toggleDirection = () => {
+  if (!reverseRoute.value) return
+  selectedRouteKey.value = reverseRoute.value.key
+  const currentCompany = activeCompany.value
+  const companies = reverseRoute.value.co || []
+  activeCompany.value = companies.includes(currentCompany) ? currentCompany : companies[0] || ''
 }
 
 const loadRoutes = async () => {
