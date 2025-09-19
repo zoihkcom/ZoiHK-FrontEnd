@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+  <div class="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
     <Navbar />
-    <main class="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
+    <main class="flex-1 pt-24 pb-20 px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto space-y-10">
         <section class="text-center space-y-3">
           <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Bus</p>
