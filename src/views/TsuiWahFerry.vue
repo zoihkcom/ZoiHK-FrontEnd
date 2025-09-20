@@ -148,9 +148,20 @@
                               <div>末班 {{ start.lastDeparture }}</div>
                             </div>
                           </div>
-                          <div class="flex flex-wrap gap-3 justify-center">
+                          <div
+                            :class="[
+                              start.layout === 'range'
+                                ? 'flex flex-col gap-3 text-left'
+                                : 'flex flex-wrap gap-3 justify-center'
+                            ]"
+                          >
                             <div v-for="time in start.times" :key="time.id"
-                              class="text-sm font-medium text-slate-700 bg-slate-50 rounded-xl px-4 py-2 text-center min-w-[72px]">
+                              :class="[
+                                'text-sm font-medium text-slate-700 rounded-xl px-4 py-2',
+                                start.layout === 'range'
+                                  ? 'bg-white border border-slate-200/60 w-full text-left'
+                                  : 'bg-slate-50 text-center min-w-[72px]'
+                              ]">
                               {{ time.display }}
                             </div>
                           </div>
@@ -235,8 +246,10 @@ const error = ref('')
 const fareRows = ref([])
 const timeRows = ref([])
 
-const STAR_FERRY_PROVIDER_ID = 'starFerryCentralTST'
-const STAR_FERRY_ROUTE_ID = 'SF-CEN-TST'
+const STAR_FERRY_CENTRAL_PROVIDER_ID = 'starFerryCentralTST'
+const STAR_FERRY_CENTRAL_ROUTE_ID = 'SF-CEN-TST'
+const STAR_FERRY_WANCHAI_PROVIDER_ID = 'starFerryWanchaiTST'
+const STAR_FERRY_WANCHAI_ROUTE_ID = 'SF-WAN-TST'
 
 const stripBom = (text = '') => (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text)
 
@@ -325,7 +338,48 @@ const buildIntervalText = (interval) => {
   return value
 }
 
-function parseStarFerryCentralTimetable(text) {
+const STAR_FERRY_PASSENGER_PATTERNS = [
+  { pattern: /成人/, code: 'adult', label: '成人', order: 1 },
+  { pattern: /小童/, code: 'child', label: '小童（3-12岁）', order: 2 },
+  { pattern: /残疾/, code: 'disabled', label: '残疾人士', order: 3 },
+  { pattern: /长者/, code: 'senior', label: '长者（65岁或以上）', order: 4 },
+]
+
+const resolveStarFerryDateType = (serviceDays) => {
+  const normalized = (serviceDays || '').replace(/\s+/g, '')
+  if (/星期一至[五六]/.test(normalized) && !/星期日/.test(normalized)) {
+    return 'W'
+  }
+  if (/公众假期/.test(normalized) || /星期日/.test(normalized) || /星期六/.test(normalized)) {
+    return 'S'
+  }
+  return 'A'
+}
+
+const extractStarFerryNotes = (rows) => {
+  const remarkRow = rows.find((row) => (row[0] || '').includes('备注'))
+  if (!remarkRow) {
+    return {}
+  }
+  const remarkText = remarkRow.slice(1).find((cell) => (cell || '').trim())
+  if (!remarkText) {
+    return {}
+  }
+  const notes = {}
+  remarkText
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      const match = line.match(/^(\d+)\.?\s*(.*)$/)
+      if (match) {
+        notes[match[1]] = match[2]
+      }
+    })
+  return notes
+}
+
+const createStarFerryTimetableParser = ({ providerId, routeId, directionMappings }) => (text) => {
   const rows = parseCsvRows(text)
   const headerIndex = rows.findIndex((row) => (row[0] || '').includes('方向') && (row[1] || '').includes('服务日子'))
   if (headerIndex === -1) {
@@ -359,12 +413,14 @@ function parseStarFerryCentralTimetable(text) {
       }
       const display = displayParts.join(' ｜ ')
 
-      const dateType = serviceDays.includes('星期一至五') ? 'W' : 'S'
-      const routeStart = direction.startsWith('中环') ? 'CENTRAL' : 'TSIMSHA'
+      const dateType = resolveStarFerryDateType(serviceDays)
+      const normalizedDirection = direction.replace(/\s+/g, '')
+      const startMatch = directionMappings.find((mapping) => mapping.pattern.test(normalizedDirection))
+      const routeStart = startMatch?.code ?? directionMappings[0]?.code ?? 'UNKNOWN'
 
       return {
-        providerId: STAR_FERRY_PROVIDER_ID,
-        routeType: STAR_FERRY_ROUTE_ID,
+        providerId,
+        routeType: routeId,
         dateType,
         routeStart,
         time: startTime,
@@ -376,122 +432,128 @@ function parseStarFerryCentralTimetable(text) {
     .filter(Boolean)
 }
 
-function parseStarFerryCentralFare(text) {
+const createStarFerryFareParser = ({
+  routeId,
+  columnConfigs,
+  noteColumnIndex,
+  passengerPatterns = STAR_FERRY_PASSENGER_PATTERNS,
+  passConfigs = [],
+  extraConfigs = [],
+}) => (text) => {
   const rows = parseCsvRows(text)
+  const noteMap = extractStarFerryNotes(rows)
   const headerIndex = rows.findIndex((row) => (row[0] || '').includes('乘客'))
   if (headerIndex === -1) {
     return []
   }
 
   const dataRows = rows.slice(headerIndex + 1).filter((row) => row.some((cell) => (cell || '').trim()))
-
-  const passengerMap = {
-    成人: { code: 'adult', label: '成人', order: 1 },
-    '小童(3至12岁)': { code: 'child', label: '小童（3-12岁）', order: 2 },
-    '残疾人士': { code: 'disabled', label: '残疾人士', order: 3 },
-    '长者(65岁或以上)': { code: 'senior', label: '长者（65岁或以上）', order: 4 },
-    月票: { code: 'monthlyPass', label: '月票', order: 10, isPass: true },
-    四日旅游票: { code: 'tourPass', label: '四日旅游票', order: 11, isPass: true },
-  }
-
-  const deckConfigs = [
-    {
-      key: 'weekdayUpperDeck',
-      dateType: 'W',
-      columnIndex: 1,
-      labelSuffix: '（上层）',
-      description: '星期一至五（公众假期除外）上层收费',
-      badge: 'bg-blue-100 text-blue-700',
-      orderOffset: 0,
-    },
-    {
-      key: 'weekdayLowerDeck',
-      dateType: 'W',
-      columnIndex: 2,
-      labelSuffix: '（下层）',
-      description: '星期一至五（公众假期除外）下层收费',
-      badge: 'bg-slate-200 text-slate-700',
-      orderOffset: 0.1,
-    },
-    {
-      key: 'holidayUpperDeck',
-      dateType: 'S',
-      columnIndex: 3,
-      labelSuffix: '（上层）',
-      description: '星期六、日及公众假期上层收费',
-      badge: 'bg-emerald-100 text-emerald-700',
-      orderOffset: 0,
-    },
-    {
-      key: 'holidayLowerDeck',
-      dateType: 'S',
-      columnIndex: 4,
-      labelSuffix: '（下层）',
-      description: '星期六、日及公众假期下层收费',
-      badge: 'bg-emerald-50 text-emerald-700',
-      orderOffset: 0.1,
-    },
-  ]
-
   const results = []
 
+  const normalizeName = (value) => (value || '').replace(/\s+/g, '')
+
+  const parsePrice = (raw) => {
+    if (!raw) {
+      return { price: null, priceText: undefined }
+    }
+    const numeric = Number.parseFloat(raw)
+    if (Number.isFinite(numeric)) {
+      return { price: numeric, priceText: undefined }
+    }
+    return { price: null, priceText: raw }
+  }
+
+  const buildDescription = (base, noteRef) => {
+    if (!noteRef) {
+      return base
+    }
+    const noteText = noteMap[noteRef]
+    if (noteText) {
+      return `${base}｜备注：${noteText}`
+    }
+    return `${base}｜备注编号：${noteRef}`
+  }
+
   dataRows.forEach((row) => {
-    const rawName = (row[0] || '').replace(/\s+/g, '').replace(/：/g, ':')
-    if (!rawName) {
+    const originalName = row[0] || ''
+    const normalized = normalizeName(originalName)
+    if (!normalized) {
       return
     }
 
-    const passengerKey = Object.keys(passengerMap).find((key) => rawName.includes(key.replace(/\s+/g, '')))
-    if (!passengerKey) {
+    const noteRef = noteColumnIndex != null ? (row[noteColumnIndex] || '').trim() : ''
+    const passenger = passengerPatterns.find((entry) => entry.pattern.test(normalized))
+    if (passenger) {
+      columnConfigs.forEach((config) => {
+        const priceRaw = (row[config.columnIndex] || '').trim()
+        if (!priceRaw) {
+          return
+        }
+        const { price, priceText } = parsePrice(priceRaw)
+        results.push({
+          routeType: routeId,
+          dateType: config.dateType,
+          fareType: `${routeId}_${passenger.code}_${config.key}`,
+          farePrice: price,
+          priceText,
+          fareDetail: {
+            label: `${passenger.label}${config.labelSuffix ?? ''}`,
+            description: buildDescription(config.description, noteRef),
+            category: config.category,
+            badge: config.badge,
+            order: passenger.order + (config.orderOffset ?? 0),
+          },
+        })
+      })
       return
     }
 
-    const passenger = passengerMap[passengerKey]
-
-    if (passenger.isPass) {
-      const priceRaw = (row[1] || row[2] || row[3] || row[4] || '').trim()
-      const price = Number.parseFloat(priceRaw)
+    const passItem = passConfigs.find((entry) => entry.pattern.test(normalized))
+    if (passItem) {
+      const priceRaw =
+        (passItem.columnIndex != null ? row[passItem.columnIndex] : undefined) ||
+        row.slice(1).find((cell) => (cell || '').trim()) ||
+        ''
+      const { price, priceText } = parsePrice((priceRaw || '').trim())
       results.push({
-        providerId: STAR_FERRY_PROVIDER_ID,
-        routeType: STAR_FERRY_ROUTE_ID,
-        dateType: 'A',
-        fareType: `${STAR_FERRY_ROUTE_ID}_${passenger.code}`,
-        farePrice: Number.isFinite(price) ? price : null,
-        priceText: Number.isFinite(price) ? undefined : priceRaw,
+        routeType: routeId,
+        dateType: passItem.dateType ?? 'A',
+        fareType: `${routeId}_${passItem.code}`,
+        farePrice: price,
+        priceText,
         fareDetail: {
-          label: passenger.label,
-          description: '适用于所有日子',
-          category: 'specialPasses',
-          badge: 'bg-amber-100 text-amber-700',
-          order: passenger.order,
+          label: passItem.label,
+          description: passItem.description ? buildDescription(passItem.description, noteRef) : buildDescription('适用于所有日子', noteRef),
+          category: passItem.category ?? 'specialPasses',
+          badge: passItem.badge ?? 'bg-amber-100 text-amber-700',
+          order: passItem.order ?? 50,
         },
       })
       return
     }
 
-    deckConfigs.forEach((config) => {
-      const priceRaw = (row[config.columnIndex] || '').trim()
-      if (!priceRaw) {
-        return
-      }
-
-      const numericPrice = Number.parseFloat(priceRaw)
+    const extraItem = extraConfigs.find((entry) => entry.pattern.test(normalized))
+    if (extraItem) {
+      const priceRaw =
+        (extraItem.columnIndex != null ? row[extraItem.columnIndex] : undefined) ||
+        row.slice(1).find((cell) => (cell || '').trim()) ||
+        ''
+      const { price, priceText } = parsePrice((priceRaw || '').trim())
       results.push({
-        providerId: STAR_FERRY_PROVIDER_ID,
-        routeType: STAR_FERRY_ROUTE_ID,
-        dateType: config.dateType,
-        fareType: `${STAR_FERRY_ROUTE_ID}_${passenger.code}_${config.key}`,
-        farePrice: Number.isFinite(numericPrice) ? numericPrice : null,
-        priceText: Number.isFinite(numericPrice) ? undefined : priceRaw,
+        routeType: routeId,
+        dateType: extraItem.dateType ?? 'A',
+        fareType: `${routeId}_${extraItem.code}`,
+        farePrice: price,
+        priceText,
         fareDetail: {
-          label: `${passenger.label}${config.labelSuffix}`,
-          description: config.description,
-          category: config.key,
-          badge: config.badge,
-          order: passenger.order + config.orderOffset,
+          label: extraItem.label,
+          description: buildDescription(extraItem.description ?? '适用于所有日子', noteRef),
+          category: extraItem.category ?? 'other',
+          badge: extraItem.badge ?? 'bg-slate-200 text-slate-700',
+          order: extraItem.order ?? 80,
         },
       })
-    })
+    }
   })
 
   return results
@@ -586,13 +648,13 @@ const providersList = [
     },
   },
   {
-    id: STAR_FERRY_PROVIDER_ID,
+    id: STAR_FERRY_CENTRAL_PROVIDER_ID,
     name: '天星小轮（中环 ⇄ 尖沙咀）',
     dataset: 'star-ferry/central-tsimshatsui',
     description: '连接中环七号码头与尖沙咀天星码头的维港横渡服务。',
     tagline: '中环七号码头 ↔ 尖沙咀天星码头',
     routeTypes: {
-      [STAR_FERRY_ROUTE_ID]: {
+      [STAR_FERRY_CENTRAL_ROUTE_ID]: {
         label: '渡轮服务',
         title: '中环 ⇄ 尖沙咀',
         description: '天星小轮经典航线，平均航程约 9 分钟。',
@@ -610,8 +672,160 @@ const providersList = [
         order: 2,
       },
     },
-    parseTime: parseStarFerryCentralTimetable,
-    parseFare: parseStarFerryCentralFare,
+    parseTime: createStarFerryTimetableParser({
+      providerId: STAR_FERRY_CENTRAL_PROVIDER_ID,
+      routeId: STAR_FERRY_CENTRAL_ROUTE_ID,
+      directionMappings: [
+        { pattern: /^中环/, code: 'CENTRAL' },
+        { pattern: /^尖沙咀/, code: 'TSIMSHA' },
+      ],
+    }),
+    parseFare: createStarFerryFareParser({
+      routeId: STAR_FERRY_CENTRAL_ROUTE_ID,
+      noteColumnIndex: 5,
+      columnConfigs: [
+        {
+          key: 'weekdayUpperDeck',
+          dateType: 'W',
+          columnIndex: 1,
+          labelSuffix: '（上层）',
+          description: '星期一至五（公众假期除外）上层收费',
+          category: 'weekdayUpperDeck',
+          badge: 'bg-blue-100 text-blue-700',
+          orderOffset: 0,
+        },
+        {
+          key: 'weekdayLowerDeck',
+          dateType: 'W',
+          columnIndex: 2,
+          labelSuffix: '（下层）',
+          description: '星期一至五（公众假期除外）下层收费',
+          category: 'weekdayLowerDeck',
+          badge: 'bg-slate-200 text-slate-700',
+          orderOffset: 0.1,
+        },
+        {
+          key: 'holidayUpperDeck',
+          dateType: 'S',
+          columnIndex: 3,
+          labelSuffix: '（上层）',
+          description: '星期六、日及公众假期上层收费',
+          category: 'holidayUpperDeck',
+          badge: 'bg-emerald-100 text-emerald-700',
+          orderOffset: 0,
+        },
+        {
+          key: 'holidayLowerDeck',
+          dateType: 'S',
+          columnIndex: 4,
+          labelSuffix: '（下层）',
+          description: '星期六、日及公众假期下层收费',
+          category: 'holidayLowerDeck',
+          badge: 'bg-emerald-50 text-emerald-700',
+          orderOffset: 0.1,
+        },
+      ],
+      passConfigs: [
+        {
+          pattern: /月票/,
+          code: 'monthlyPass',
+          label: '月票',
+          order: 50,
+        },
+        {
+          pattern: /四日旅游票/,
+          code: 'tourPass',
+          label: '四日旅游票',
+          order: 51,
+        },
+      ],
+    }),
+  },
+  {
+    id: STAR_FERRY_WANCHAI_PROVIDER_ID,
+    name: '天星小轮（湾仔 ⇄ 尖沙咀）',
+    dataset: 'star-ferry/wanchai-tsimshatsui',
+    description: '连接湾仔会议道渡轮码头与尖沙咀天星码头的维港横渡服务。',
+    tagline: '湾仔渡轮码头 ↔ 尖沙咀天星码头',
+    routeTypes: {
+      [STAR_FERRY_WANCHAI_ROUTE_ID]: {
+        label: '渡轮服务',
+        title: '湾仔 ⇄ 尖沙咀',
+        description: '天星小轮湾仔线，平均航程约 8 分钟。',
+      },
+    },
+    routeStarts: {
+      WANCHAI: {
+        label: '湾仔出发',
+        description: '湾仔渡轮码头 → 尖沙咀天星码头',
+        order: 1,
+      },
+      TSIMSHA: {
+        label: '尖沙咀出发',
+        description: '尖沙咀天星码头 → 湾仔渡轮码头',
+        order: 2,
+      },
+    },
+    parseTime: createStarFerryTimetableParser({
+      providerId: STAR_FERRY_WANCHAI_PROVIDER_ID,
+      routeId: STAR_FERRY_WANCHAI_ROUTE_ID,
+      directionMappings: [
+        { pattern: /^湾仔/, code: 'WANCHAI' },
+        { pattern: /^尖沙咀/, code: 'TSIMSHA' },
+      ],
+    }),
+    parseFare: createStarFerryFareParser({
+      routeId: STAR_FERRY_WANCHAI_ROUTE_ID,
+      noteColumnIndex: 3,
+      columnConfigs: [
+        {
+          key: 'weekdayGeneral',
+          dateType: 'W',
+          columnIndex: 1,
+          labelSuffix: '（平日）',
+          description: '星期一至六（公众假期除外）',
+          category: 'weekdayGeneral',
+          badge: 'bg-blue-100 text-blue-700',
+          orderOffset: 0,
+        },
+        {
+          key: 'holidayGeneral',
+          dateType: 'S',
+          columnIndex: 2,
+          labelSuffix: '（假日）',
+          description: '星期日及公众假期',
+          category: 'holidayGeneral',
+          badge: 'bg-emerald-100 text-emerald-700',
+          orderOffset: 0,
+        },
+      ],
+      passConfigs: [
+        {
+          pattern: /月票/,
+          code: 'monthlyPass',
+          label: '月票',
+          order: 50,
+        },
+        {
+          pattern: /四日旅游票/,
+          code: 'tourPass',
+          label: '四日旅游票',
+          order: 51,
+        },
+      ],
+      extraConfigs: [
+        {
+          pattern: /单车/,
+          code: 'bicycle',
+          label: '单车',
+          description: '单车载运收费（仅限下层指定班次）',
+          order: 70,
+          dateType: 'A',
+          columnIndex: 1,
+          badge: 'bg-slate-200 text-slate-700',
+        },
+      ],
+    }),
   },
 ]
 
@@ -743,45 +957,55 @@ const fareCategoryDetails = {
     description: '仅适用于航线指定区间',
     order: 2,
   },
+  weekdayGeneral: {
+    label: '平日票价',
+    description: '星期一至五（公众假期除外）',
+    order: 3,
+  },
+  holidayGeneral: {
+    label: '假日票价',
+    description: '星期六、日及公众假期',
+    order: 4,
+  },
   resident: {
     label: '居民当日往返票',
     description: '同日往返、限定周日及公众假期',
-    order: 3,
+    order: 5,
   },
   monthly: {
     label: '月票',
     description: '月票持有人不限次数乘坐',
-    order: 4,
+    order: 6,
   },
   freight: {
     label: '货物收费',
     description: '按官方规定的单位收取货运费用',
-    order: 5,
+    order: 7,
   },
   other: {
     label: '其他票价',
     description: '官方未分类的其他费用',
-    order: 6,
+    order: 8,
   },
   weekdayUpperDeck: {
     label: '平日上层甲板收费',
     description: '星期一至五（公众假期除外）上层收费',
-    order: 11,
+    order: 9,
   },
   weekdayLowerDeck: {
     label: '平日下层甲板收费',
     description: '星期一至五（公众假期除外）下层收费',
-    order: 12,
+    order: 10,
   },
   holidayUpperDeck: {
     label: '假日上层甲板收费',
     description: '星期六、日及公众假期上层收费',
-    order: 13,
+    order: 11,
   },
   holidayLowerDeck: {
     label: '假日下层甲板收费',
     description: '星期六、日及公众假期下层收费',
-    order: 14,
+    order: 12,
   },
   specialPasses: {
     label: '通票与旅游票',
@@ -1024,6 +1248,7 @@ const buildTimetables = (providerId, routeType) => {
                 id: `${providerId}-${routeType}-${dateType}-${start}-${entry}-${index}`,
                 value: formatted,
                 display: formatted,
+                isRange: false,
               }
             }
 
@@ -1032,6 +1257,7 @@ const buildTimetables = (providerId, routeType) => {
               id: `${providerId}-${routeType}-${dateType}-${start}-${entry.time}-${index}`,
               value: displayText,
               display: displayText,
+              isRange: Boolean(entry.startTime && entry.endTime && entry.startTime !== entry.endTime),
             }
           })
 
@@ -1046,6 +1272,8 @@ const buildTimetables = (providerId, routeType) => {
               ? lastEntry
               : lastEntry?.endTime || lastEntry?.time
 
+          const hasIntervalLayout = formattedTimes.some((item) => item.isRange || item.display.includes('｜'))
+
           return {
             key: `${dateType}-${start}`,
             label: meta.label,
@@ -1054,6 +1282,7 @@ const buildTimetables = (providerId, routeType) => {
             firstDeparture: formatScheduleTime(firstValue),
             lastDeparture: formatScheduleTime(lastValue),
             order: meta.order ?? 99,
+            layout: hasIntervalLayout ? 'range' : 'grid',
           }
         })
         .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.label.localeCompare(b.label))
