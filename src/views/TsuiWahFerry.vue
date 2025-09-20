@@ -6,10 +6,10 @@
       <div class="max-w-8xl mx-auto">
         <div class="text-center mb-10">
           <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            翠华船务航班与票价总览
+            维港渡轮航班与票价总览
           </h1>
           <p class="text-lg text-slate-600">
-            汇总翠华船务（香港仔 ⇄ 榕树湾，经北角村）的航班时间表与票价信息，数据来源：Tsui Wah Ferry Service (H.K.) Ltd. OpenData。
+            汇总翠华船务、全记渡及天星小轮等运营商的航班时间表与票价信息，集中展示维港与离岛主要渡轮的数据来源。
           </p>
         </div>
 
@@ -44,9 +44,9 @@
             <div class="p-6">
               <h2 class="text-xl font-semibold text-slate-900 mb-2">数据说明</h2>
               <p class="text-sm text-slate-600 leading-relaxed">
-                航线分为持牌渡轮（L）与街渡（K）两类，目前页面整合翠华船务（香港仔 ⇄ 榕树湾，经北角村）与全记渡（香港仔 ⇄ 索罟湾，经模达）两家运营商的开放数据。
-                时间表按「星期一至星期六（公众假期除外）」与「星期日及公众假期」划分，航班出发点涵盖香港仔、榕树湾、索罟湾等码头。
-                票价涵盖成人、儿童、长者、残疾人士的标准票、分段票、居民当日往返票、月票及货物收费（以官方规定单位计费）。
+                航线分为持牌渡轮（L）与街渡（K）两类，目前页面整合翠华船务（香港仔 ⇄ 榕树湾）、全记渡（香港仔 ⇄ 索罟湾）及天星小轮（中环 / 湾仔 ⇄ 尖沙咀）等运营商的开放数据。
+                时间表按「星期一至星期六（公众假期除外）」与「星期日及公众假期」划分，航班出发点涵盖香港仔、榕树湾、索罟湾、中环、湾仔、尖沙咀等码头。
+                票价涵盖成人、儿童、长者、残疾人士的标准票、分段票、居民当日往返票、月票、旅游票及货物/单车收费（以官方规定单位计费）。
               </p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">

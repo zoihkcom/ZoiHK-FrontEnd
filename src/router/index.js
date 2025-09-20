@@ -87,6 +87,16 @@ const routes = [
     component: () => import("../views/Wifi.vue"),
   },
   {
+    path: "/bank-branches",
+    name: "BankBranches",
+    component: () => import("../views/BankBranches.vue"),
+  },
+  {
+    path: "/bank-atms",
+    name: "BankATMs",
+    component: () => import("../views/BankATMs.vue"),
+  },
+  {
     path: "/fehd",
     name: "FEHD",
     component: () => import("../views/FEHD.vue"),

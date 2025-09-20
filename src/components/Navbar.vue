@@ -243,6 +243,24 @@
                   </div>
                 </router-link>
 
+                <router-link to="/bank-branches"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-bank w-4 text-amber-600"></i>
+                  <div>
+                    <div class="font-medium">银行网点</div>
+                    <div class="text-xs text-gray-500">HKMA 官方数据</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/bank-atms"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-credit-card w-4 text-indigo-500"></i>
+                  <div>
+                    <div class="font-medium">银行自动柜员机</div>
+                    <div class="text-xs text-gray-500">ATM 网络与功能</div>
+                  </div>
+                </router-link>
+
                 <router-link to="/libraries"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-book w-4 text-emerald-500"></i>
@@ -582,6 +600,14 @@
           <router-link to="/wifi" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-wifi w-4 text-blue-500 mr-2"></i>WiFi热点
+          </router-link>
+          <router-link to="/bank-branches" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-bank w-4 text-amber-600 mr-2"></i>银行网点
+          </router-link>
+          <router-link to="/bank-atms" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-credit-card w-4 text-indigo-500 mr-2"></i>银行自动柜员机
           </router-link>
           <router-link to="/libraries" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
