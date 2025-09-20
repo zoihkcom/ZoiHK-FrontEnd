@@ -177,6 +177,11 @@ const routes = [
     component: () => import("../views/FerryPiers.vue"),
   },
   {
+    path: "/tsui-wah-ferry",
+    name: "TsuiWahFerry",
+    component: () => import("../views/TsuiWahFerry.vue"),
+  },
+  {
     path: "/heritage/monuments",
     name: "HeritageMonuments",
     component: () => import("../views/HeritageMonuments.vue"),
