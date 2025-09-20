@@ -187,9 +187,9 @@ const routes = [
     component: () => import("../views/FerryPiers.vue"),
   },
   {
-    path: "/tsui-wah-ferry",
-    name: "TsuiWahFerry",
-    component: () => import("../views/TsuiWahFerry.vue"),
+    path: "/ferry",
+    name: "Ferry",
+    component: () => import("../views/Ferry.vue"),
   },
   {
     path: "/heritage/monuments",
