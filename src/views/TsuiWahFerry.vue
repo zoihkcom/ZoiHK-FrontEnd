@@ -3,7 +3,7 @@
     <Navbar />
 
     <div class="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-7xl mx-auto">
+      <div class="max-w-8xl mx-auto">
         <div class="text-center mb-10">
           <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
             翠华船务航班与票价总览
@@ -235,6 +235,268 @@ const error = ref('')
 const fareRows = ref([])
 const timeRows = ref([])
 
+const STAR_FERRY_PROVIDER_ID = 'starFerryCentralTST'
+const STAR_FERRY_ROUTE_ID = 'SF-CEN-TST'
+
+const stripBom = (text = '') => (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text)
+
+const parseCsvRows = (text) => {
+  const rows = []
+  let currentField = ''
+  let currentRow = []
+  let inQuotes = false
+  const source = stripBom(text || '')
+
+  for (let i = 0; i < source.length; i += 1) {
+    const char = source[i]
+    const nextChar = source[i + 1]
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentField += '"'
+        i += 1
+      } else {
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+
+    if (char === ',' && !inQuotes) {
+      currentRow.push(currentField)
+      currentField = ''
+      continue
+    }
+
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      currentRow.push(currentField)
+      currentField = ''
+      rows.push(currentRow)
+      currentRow = []
+
+      if (char === '\r' && nextChar === '\n') {
+        i += 1
+      }
+
+      continue
+    }
+
+    currentField += char
+  }
+
+  if (currentField.length > 0 || currentRow.length > 0) {
+    currentRow.push(currentField)
+    rows.push(currentRow)
+  }
+
+  return rows
+}
+
+const to24HourTime = (value) => {
+  if (!value) {
+    return ''
+  }
+  const trimmed = value.trim().toLowerCase()
+  const match = trimmed.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/i)
+  if (!match) {
+    return trimmed
+  }
+  let [_, hours, minutes = '00', period] = match
+  let hourValue = Number.parseInt(hours, 10)
+  if (Number.isNaN(hourValue)) {
+    return trimmed
+  }
+  if (period.toLowerCase() === 'pm' && hourValue !== 12) {
+    hourValue += 12
+  }
+  if (period.toLowerCase() === 'am' && hourValue === 12) {
+    hourValue = 0
+  }
+  return `${String(hourValue).padStart(2, '0')}:${minutes.padStart(2, '0')}`
+}
+
+const buildIntervalText = (interval) => {
+  const value = interval?.trim()
+  if (!value) {
+    return ''
+  }
+  if (Number.isFinite(Number(value))) {
+    return `约每 ${value} 分钟一班`
+  }
+  return value
+}
+
+function parseStarFerryCentralTimetable(text) {
+  const rows = parseCsvRows(text)
+  const headerIndex = rows.findIndex((row) => (row[0] || '').includes('方向') && (row[1] || '').includes('服务日子'))
+  if (headerIndex === -1) {
+    return []
+  }
+
+  const dataRows = rows.slice(headerIndex + 1).filter((row) => row.some((cell) => (cell || '').trim()))
+  return dataRows
+    .map((row) => {
+      const direction = (row[0] || '').trim()
+      const serviceDays = (row[1] || '').trim()
+      const periodRaw = (row[2] || '').trim()
+      const intervalRaw = (row[3] || '').trim()
+
+      if (!direction || !serviceDays || !periodRaw) {
+        return null
+      }
+
+      const [startRaw, endRaw] = periodRaw.split('-').map((part) => part?.trim() ?? '')
+      const startTime = to24HourTime(startRaw)
+      const endTime = to24HourTime(endRaw)
+      const intervalText = buildIntervalText(intervalRaw)
+      const displayParts = []
+      if (startTime && endTime) {
+        displayParts.push(`${startTime} - ${endTime}`)
+      } else {
+        displayParts.push(periodRaw)
+      }
+      if (intervalText) {
+        displayParts.push(intervalText)
+      }
+      const display = displayParts.join(' ｜ ')
+
+      const dateType = serviceDays.includes('星期一至五') ? 'W' : 'S'
+      const routeStart = direction.startsWith('中环') ? 'CENTRAL' : 'TSIMSHA'
+
+      return {
+        providerId: STAR_FERRY_PROVIDER_ID,
+        routeType: STAR_FERRY_ROUTE_ID,
+        dateType,
+        routeStart,
+        time: startTime,
+        startTime,
+        endTime,
+        display,
+      }
+    })
+    .filter(Boolean)
+}
+
+function parseStarFerryCentralFare(text) {
+  const rows = parseCsvRows(text)
+  const headerIndex = rows.findIndex((row) => (row[0] || '').includes('乘客'))
+  if (headerIndex === -1) {
+    return []
+  }
+
+  const dataRows = rows.slice(headerIndex + 1).filter((row) => row.some((cell) => (cell || '').trim()))
+
+  const passengerMap = {
+    成人: { code: 'adult', label: '成人', order: 1 },
+    '小童(3至12岁)': { code: 'child', label: '小童（3-12岁）', order: 2 },
+    '残疾人士': { code: 'disabled', label: '残疾人士', order: 3 },
+    '长者(65岁或以上)': { code: 'senior', label: '长者（65岁或以上）', order: 4 },
+    月票: { code: 'monthlyPass', label: '月票', order: 10, isPass: true },
+    四日旅游票: { code: 'tourPass', label: '四日旅游票', order: 11, isPass: true },
+  }
+
+  const deckConfigs = [
+    {
+      key: 'weekdayUpperDeck',
+      dateType: 'W',
+      columnIndex: 1,
+      labelSuffix: '（上层）',
+      description: '星期一至五（公众假期除外）上层收费',
+      badge: 'bg-blue-100 text-blue-700',
+      orderOffset: 0,
+    },
+    {
+      key: 'weekdayLowerDeck',
+      dateType: 'W',
+      columnIndex: 2,
+      labelSuffix: '（下层）',
+      description: '星期一至五（公众假期除外）下层收费',
+      badge: 'bg-slate-200 text-slate-700',
+      orderOffset: 0.1,
+    },
+    {
+      key: 'holidayUpperDeck',
+      dateType: 'S',
+      columnIndex: 3,
+      labelSuffix: '（上层）',
+      description: '星期六、日及公众假期上层收费',
+      badge: 'bg-emerald-100 text-emerald-700',
+      orderOffset: 0,
+    },
+    {
+      key: 'holidayLowerDeck',
+      dateType: 'S',
+      columnIndex: 4,
+      labelSuffix: '（下层）',
+      description: '星期六、日及公众假期下层收费',
+      badge: 'bg-emerald-50 text-emerald-700',
+      orderOffset: 0.1,
+    },
+  ]
+
+  const results = []
+
+  dataRows.forEach((row) => {
+    const rawName = (row[0] || '').replace(/\s+/g, '').replace(/：/g, ':')
+    if (!rawName) {
+      return
+    }
+
+    const passengerKey = Object.keys(passengerMap).find((key) => rawName.includes(key.replace(/\s+/g, '')))
+    if (!passengerKey) {
+      return
+    }
+
+    const passenger = passengerMap[passengerKey]
+
+    if (passenger.isPass) {
+      const priceRaw = (row[1] || row[2] || row[3] || row[4] || '').trim()
+      const price = Number.parseFloat(priceRaw)
+      results.push({
+        providerId: STAR_FERRY_PROVIDER_ID,
+        routeType: STAR_FERRY_ROUTE_ID,
+        dateType: 'A',
+        fareType: `${STAR_FERRY_ROUTE_ID}_${passenger.code}`,
+        farePrice: Number.isFinite(price) ? price : null,
+        priceText: Number.isFinite(price) ? undefined : priceRaw,
+        fareDetail: {
+          label: passenger.label,
+          description: '适用于所有日子',
+          category: 'specialPasses',
+          badge: 'bg-amber-100 text-amber-700',
+          order: passenger.order,
+        },
+      })
+      return
+    }
+
+    deckConfigs.forEach((config) => {
+      const priceRaw = (row[config.columnIndex] || '').trim()
+      if (!priceRaw) {
+        return
+      }
+
+      const numericPrice = Number.parseFloat(priceRaw)
+      results.push({
+        providerId: STAR_FERRY_PROVIDER_ID,
+        routeType: STAR_FERRY_ROUTE_ID,
+        dateType: config.dateType,
+        fareType: `${STAR_FERRY_ROUTE_ID}_${passenger.code}_${config.key}`,
+        farePrice: Number.isFinite(numericPrice) ? numericPrice : null,
+        priceText: Number.isFinite(numericPrice) ? undefined : priceRaw,
+        fareDetail: {
+          label: `${passenger.label}${config.labelSuffix}`,
+          description: config.description,
+          category: config.key,
+          badge: config.badge,
+          order: passenger.order + config.orderOffset,
+        },
+      })
+    })
+  })
+
+  return results
+}
+
 const providersList = [
   {
     id: 'tsuiWah',
@@ -323,6 +585,34 @@ const providersList = [
       },
     },
   },
+  {
+    id: STAR_FERRY_PROVIDER_ID,
+    name: '天星小轮（中环 ⇄ 尖沙咀）',
+    dataset: 'star-ferry/central-tsimshatsui',
+    description: '连接中环七号码头与尖沙咀天星码头的维港横渡服务。',
+    tagline: '中环七号码头 ↔ 尖沙咀天星码头',
+    routeTypes: {
+      [STAR_FERRY_ROUTE_ID]: {
+        label: '渡轮服务',
+        title: '中环 ⇄ 尖沙咀',
+        description: '天星小轮经典航线，平均航程约 9 分钟。',
+      },
+    },
+    routeStarts: {
+      CENTRAL: {
+        label: '中环出发',
+        description: '中环七号码头 → 尖沙咀天星码头',
+        order: 1,
+      },
+      TSIMSHA: {
+        label: '尖沙咀出发',
+        description: '尖沙咀天星码头 → 中环七号码头',
+        order: 2,
+      },
+    },
+    parseTime: parseStarFerryCentralTimetable,
+    parseFare: parseStarFerryCentralFare,
+  },
 ]
 
 const providersMap = Object.fromEntries(providersList.map((provider) => [provider.id, provider]))
@@ -345,6 +635,12 @@ const dateTypeDetails = {
     short: '周日及公众假期',
     description: 'Sunday & public holidays',
     order: 2,
+  },
+  A: {
+    label: '所有日子',
+    short: '全周通用',
+    description: '适用于所有服务日子',
+    order: 3,
   },
 }
 
@@ -467,6 +763,31 @@ const fareCategoryDetails = {
     description: '官方未分类的其他费用',
     order: 6,
   },
+  weekdayUpperDeck: {
+    label: '平日上层甲板收费',
+    description: '星期一至五（公众假期除外）上层收费',
+    order: 11,
+  },
+  weekdayLowerDeck: {
+    label: '平日下层甲板收费',
+    description: '星期一至五（公众假期除外）下层收费',
+    order: 12,
+  },
+  holidayUpperDeck: {
+    label: '假日上层甲板收费',
+    description: '星期六、日及公众假期上层收费',
+    order: 13,
+  },
+  holidayLowerDeck: {
+    label: '假日下层甲板收费',
+    description: '星期六、日及公众假期下层收费',
+    order: 14,
+  },
+  specialPasses: {
+    label: '通票与旅游票',
+    description: '天星小轮月票及四日旅游票',
+    order: 20,
+  },
 }
 
 const fallbackFareDetail = {
@@ -511,14 +832,14 @@ const getFareDetail = (providerId, fareType) => {
   return providerOverride ? { ...base, ...providerOverride } : base
 }
 
-const dateOrder = ['W', 'WW', 'S']
+const dateOrder = ['W', 'WW', 'S', 'A']
 
 const withTrailingSlash = (value) => (value.endsWith('/') ? value : `${value}/`)
 const assetBase = withTrailingSlash(import.meta.env.BASE_URL || '/')
 const getProviderAssetUrl = (dataset, name) => `${assetBase}data/${dataset}/${name}`
 
 const parseCsv = (text) => {
-  const lines = text.trim().split(/\r?\n/).filter((line) => line.length > 0)
+  const lines = stripBom(text).trim().split(/\r?\n/).filter((line) => line.length > 0)
   if (lines.length === 0) {
     return []
   }
@@ -541,6 +862,7 @@ const parseFareRows = (records) => {
       dateType: record.date_type,
       fareType: record.fare_type,
       farePrice: Number.isFinite(price) ? price : null,
+      fareDetail: undefined,
     }
   })
 }
@@ -551,6 +873,9 @@ const parseTimeRows = (records) => {
     dateType: record.date_type,
     routeStart: record.route_start,
     time: record.time,
+    startTime: record.time,
+    endTime: record.time,
+    display: record.time,
   }))
 }
 
@@ -569,20 +894,31 @@ const loadFerryData = async () => {
           throw new Error(`无法读取${provider.name}开放数据`)
         }
 
-        const [fareText, timeText] = await Promise.all([
+        const [fareTextRaw, timeTextRaw] = await Promise.all([
           fareResponse.text(),
           timeResponse.text(),
         ])
 
+        const fareText = stripBom(fareTextRaw)
+        const timeText = stripBom(timeTextRaw)
+
+        const parsedFares = provider.parseFare
+          ? provider.parseFare(fareText)
+          : parseFareRows(parseCsv(fareText))
+
+        const parsedTimes = provider.parseTime
+          ? provider.parseTime(timeText)
+          : parseTimeRows(parseCsv(timeText))
+
         return {
           providerId: provider.id,
-          fares: parseFareRows(parseCsv(fareText)).map((row) => ({
+          fares: parsedFares.map((row) => ({
             ...row,
-            providerId: provider.id,
+            providerId: row.providerId ?? provider.id,
           })),
-          times: parseTimeRows(parseCsv(timeText)).map((row) => ({
+          times: parsedTimes.map((row) => ({
             ...row,
-            providerId: provider.id,
+            providerId: row.providerId ?? provider.id,
           })),
         }
       }),
@@ -605,24 +941,37 @@ onMounted(() => {
 const unique = (items) => Array.from(new Set(items))
 
 const timeToMinutes = (time) => {
-  const [hours, minutes] = time.split(':').map((value) => Number(value) || 0)
+  if (!time) {
+    return 0
+  }
+  const normalized = /am|pm/i.test(time) ? to24HourTime(time) : time
+  const [hours, minutes] = normalized.split(':').map((value) => Number(value) || 0)
   return hours * 60 + minutes
 }
 
 const sortTimes = (times) => {
   const seen = new Set()
-  const uniqueTimes = []
-  times.forEach((value) => {
+  const uniqueEntries = []
+  times.forEach((entry) => {
+    if (!entry) {
+      return
+    }
+    const value = typeof entry === 'string' ? entry : entry.time
     if (!value) {
       return
     }
-    if (seen.has(value)) {
+    const bucketKey = typeof entry === 'string' ? value : `${value}|${entry.display ?? ''}`
+    if (seen.has(bucketKey)) {
       return
     }
-    seen.add(value)
-    uniqueTimes.push(value)
+    seen.add(bucketKey)
+    uniqueEntries.push(entry)
   })
-  return uniqueTimes.sort((a, b) => timeToMinutes(a) - timeToMinutes(b))
+  return uniqueEntries.sort((a, b) => {
+    const valueA = typeof a === 'string' ? a : a.time
+    const valueB = typeof b === 'string' ? b : b.time
+    return timeToMinutes(valueA) - timeToMinutes(valueB)
+  })
 }
 
 const formatScheduleTime = (value) => {
@@ -653,7 +1002,7 @@ const buildTimetables = (providerId, routeType) => {
     if (!startMap.has(row.routeStart)) {
       startMap.set(row.routeStart, [])
     }
-    startMap.get(row.routeStart).push(row.time)
+    startMap.get(row.routeStart).push(row)
   })
 
   return dateOrder
@@ -667,19 +1016,43 @@ const buildTimetables = (providerId, routeType) => {
       const stops = Array.from(startMap.keys())
         .map((start) => {
           const meta = getRouteStartMeta(providerId, start)
-          const sortedTimes = sortTimes(startMap.get(start))
-          const formattedTimes = sortedTimes.map((value, index) => ({
-            id: `${providerId}-${routeType}-${dateType}-${start}-${value}-${index}`,
-            value,
-            display: formatScheduleTime(value),
-          }))
+          const sortedEntries = sortTimes(startMap.get(start))
+          const formattedTimes = sortedEntries.map((entry, index) => {
+            if (typeof entry === 'string') {
+              const formatted = formatScheduleTime(entry)
+              return {
+                id: `${providerId}-${routeType}-${dateType}-${start}-${entry}-${index}`,
+                value: formatted,
+                display: formatted,
+              }
+            }
+
+            const displayText = entry.display || formatScheduleTime(entry.time)
+            return {
+              id: `${providerId}-${routeType}-${dateType}-${start}-${entry.time}-${index}`,
+              value: displayText,
+              display: displayText,
+            }
+          })
+
+          const firstEntry = sortedEntries[0]
+          const lastEntry = sortedEntries[sortedEntries.length - 1]
+          const firstValue =
+            typeof firstEntry === 'string'
+              ? firstEntry
+              : firstEntry?.startTime || firstEntry?.time
+          const lastValue =
+            typeof lastEntry === 'string'
+              ? lastEntry
+              : lastEntry?.endTime || lastEntry?.time
+
           return {
             key: `${dateType}-${start}`,
             label: meta.label,
             description: meta.description,
             times: formattedTimes,
-            firstDeparture: formatScheduleTime(sortedTimes[0]),
-            lastDeparture: formatScheduleTime(sortedTimes[sortedTimes.length - 1]),
+            firstDeparture: formatScheduleTime(firstValue),
+            lastDeparture: formatScheduleTime(lastValue),
             order: meta.order ?? 99,
           }
         })
@@ -706,13 +1079,14 @@ const buildFareSections = (providerId, routeType) => {
       groupedByDate.set(row.dateType, new Map())
     }
     const categoryMap = groupedByDate.get(row.dateType)
-    const detail = getFareDetail(providerId, row.fareType)
+    const detail = row.fareDetail ?? getFareDetail(providerId, row.fareType)
     if (!categoryMap.has(detail.category)) {
       categoryMap.set(detail.category, [])
     }
     categoryMap.get(detail.category).push({
       code: row.fareType,
       price: row.farePrice,
+       priceText: row.priceText,
       ...detail,
     })
   })
@@ -737,7 +1111,7 @@ const buildFareSections = (providerId, routeType) => {
               label: item.label,
               description: item.description,
               badge: item.badge,
-              priceText: formatFare(item.price),
+              priceText: item.priceText ?? formatFare(item.price),
             }))
           return {
             key: categoryKey,
@@ -853,7 +1227,7 @@ const summaryMetrics = computed(() => {
   const fareTypeCount = unique(fareRows.value.map((row) => `${row.providerId}-${row.fareType}`)).length
   const fareNamesPreview = unique(
     fareRows.value
-      .map((row) => getFareDetail(row.providerId, row.fareType)?.label ?? row.fareType)
+      .map((row) => (row.fareDetail ?? getFareDetail(row.providerId, row.fareType))?.label ?? row.fareType)
       .filter(Boolean),
   )
     .slice(0, 4)
