@@ -196,6 +196,11 @@ const routes = [
     name: "Status",
     component: () => import("../views/Status.vue"),
   },
+  {
+    path: "/no-smoking-areas",
+    name: "NoSmokingAreas",
+    component: () => import("../views/NoSmokingAreas.vue"),
+  },
 ];
 
 const router = createRouter({

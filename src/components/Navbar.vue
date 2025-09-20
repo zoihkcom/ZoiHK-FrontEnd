@@ -323,6 +323,15 @@
                     <div class="text-xs text-gray-500">自动体外除颤器</div>
                   </div>
                 </router-link>
+
+                <router-link to="/no-smoking-areas"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-ban w-4 text-red-600"></i>
+                  <div>
+                    <div class="font-medium">禁烟区范围</div>
+                    <div class="text-xs text-gray-500">No Smoking Areas</div>
+                  </div>
+                </router-link>
               </div>
             </div>
           </div>
@@ -600,6 +609,10 @@
           <router-link to="/aed" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-heartbeat w-4 text-red-500 mr-2"></i>AED 急救设备
+          </router-link>
+          <router-link to="/no-smoking-areas" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-ban w-4 text-red-600 mr-2"></i>禁烟区范围
           </router-link>
         </div>
 

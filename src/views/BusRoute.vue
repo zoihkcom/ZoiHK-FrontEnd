@@ -234,6 +234,7 @@ const COMPANY_MAP = {
   sunferry: '新渡轮',
   lrtfeeder: '轻铁接驳',
   fortuneferry: '富裕小轮',
+  lightRail: "轻铁"   
 }
 
 const loading = ref(false)
