@@ -44,15 +44,15 @@
             <div class="p-6">
               <h2 class="text-xl font-semibold text-slate-900 mb-2">数据说明</h2>
               <p class="text-sm text-slate-600 leading-relaxed">
-                航线分为持牌渡轮（L）与街渡（K）两类，目前公开数据覆盖香港仔 ⇄ 榕树湾航线（L）。
-                时间表按「星期一至星期六（公众假期除外）」与「星期日及公众假期」划分，航班分别以「香港仔」或「榕树湾」为出发点。
-                票价涵盖成人、儿童、长者、残疾人士的标准票、分段票、居民当日往返票、月票及货物收费。
+                航线分为持牌渡轮（L）与街渡（K）两类，目前页面整合翠华船务（香港仔 ⇄ 榕树湾，经北角村）与全记渡（香港仔 ⇄ 索罟湾，经模达）两家运营商的开放数据。
+                时间表按「星期一至星期六（公众假期除外）」与「星期日及公众假期」划分，航班出发点涵盖香港仔、榕树湾、索罟湾等码头。
+                票价涵盖成人、儿童、长者、残疾人士的标准票、分段票、居民当日往返票、月票及货物收费（以官方规定单位计费）。
               </p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
               <div class="p-5 bg-slate-50/60">
                 <div class="text-sm text-slate-500 mb-1">航线方向</div>
-                <div class="text-base text-slate-700">香港仔 → 榕树湾（经北角村）、榕树湾 → 香港仔（经北角村）</div>
+                <div class="text-base text-slate-700">香港仔 ↔ 榕树湾（经北角村）；香港仔 ↔ 索罟湾（经模达）</div>
               </div>
               <div class="p-5 bg-slate-50/60">
                 <div class="text-sm text-slate-500 mb-1">数据更新时间</div>
@@ -61,131 +61,155 @@
             </div>
           </div>
 
-          <div v-for="route in routes" :key="route.routeType"
-            class="bg-white rounded-3xl ring-1 ring-slate-200/70 mb-12 overflow-hidden">
-            <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div v-for="service in services" :key="service.id" class="space-y-6 mb-12">
+            <div class="bg-white rounded-3xl ring-1 ring-slate-200/70 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-700">
-                    {{ route.typeLabel }}
-                  </span>
-                  <span class="text-xs text-slate-500">代码：{{ route.routeType }}</span>
-                </div>
-                <h3 class="text-2xl font-semibold text-slate-900">{{ route.title }}</h3>
-                <p class="text-sm text-slate-600 mt-1">{{ route.description }}</p>
+                <h2 class="text-2xl font-semibold text-slate-900">{{ service.name }}</h2>
+                <p class="text-sm text-slate-600 mt-1">{{ service.description }}</p>
+                <p v-if="service.tagline" class="text-xs text-slate-500 mt-2">{{ service.tagline }}</p>
               </div>
               <div class="flex flex-wrap gap-2">
                 <div class="px-3 py-2 bg-slate-100 text-slate-600 text-xs rounded-xl">
-                  平日班次 {{ route.weekdayTrips }} 班
+                  航线 {{ service.summary.routeCount }} 条
                 </div>
                 <div class="px-3 py-2 bg-slate-100 text-slate-600 text-xs rounded-xl">
-                  假日班次 {{ route.holidayTrips }} 班
+                  工作日 {{ service.summary.weekdayTrips }} 班
                 </div>
                 <div class="px-3 py-2 bg-slate-100 text-slate-600 text-xs rounded-xl">
-                  票价种类 {{ route.fareTypes }} 种
+                  假日 {{ service.summary.holidayTrips }} 班
                 </div>
               </div>
             </div>
 
-            <div class="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div class="bg-white rounded-2xl border border-blue-100/60 p-6 space-y-5">
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 class="text-lg font-semibold text-blue-800">航班时间表</h4>
-                    <p class="text-xs text-blue-600">按日期类型与出发站点划分</p>
+            <div v-for="route in service.routes" :key="route.key"
+              class="bg-white rounded-3xl ring-1 ring-slate-200/70 overflow-hidden">
+              <div class="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-700">
+                      {{ route.typeLabel }}
+                    </span>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
+                      {{ route.providerName }}
+                    </span>
+                    <span class="text-xs text-slate-500">代码：{{ route.routeType }}</span>
                   </div>
-                  <div class="text-sm text-blue-600 bg-blue-50/70 px-3 py-1 rounded-full">
-                    共 {{ route.totalTrips }} 班次
-                  </div>
+                  <h3 class="text-2xl font-semibold text-slate-900">{{ route.title }}</h3>
+                  <p class="text-sm text-slate-600 mt-1">{{ route.description }}</p>
                 </div>
-
-                <div class="space-y-5">
-                  <div v-for="section in route.timetables" :key="section.dateType"
-                    class="rounded-2xl bg-white p-5 space-y-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div>
-                        <div class="text-sm font-medium text-blue-700">{{ section.dateLabel }}</div>
-                        <div class="text-xs text-slate-500">{{ section.dateDescription }}</div>
-                      </div>
-                      <div class="text-xs text-blue-700 bg-white/80 px-3 py-1 rounded-full">
-                        {{ section.tripCount }} 班
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div v-for="start in section.stops" :key="start.key"
-                        class="bg-slate-50 rounded-xl p-4 space-y-3">
-                        <div class="flex items-center justify-between mb-3">
-                          <div>
-                            <div class="text-sm font-semibold text-slate-800">{{ start.label }}</div>
-                            <div class="text-xs text-slate-500">{{ start.description }}</div>
-                          </div>
-                          <div class="text-xs text-slate-500 text-right">
-                            <div>首班 {{ start.firstDeparture }}</div>
-                            <div>末班 {{ start.lastDeparture }}</div>
-                          </div>
-                        </div>
-                        <div class="flex flex-wrap gap-3 justify-center">
-                          <div v-for="time in start.times" :key="time.id"
-                            class="text-sm font-medium text-slate-700 bg-slate-50 rounded-xl px-4 py-2 text-center min-w-[72px]">
-                            {{ time.display }}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                <div class="flex flex-wrap gap-2">
+                  <div class="px-3 py-2 bg-slate-100 text-slate-600 text-xs rounded-xl">
+                    平日班次 {{ route.weekdayTrips }} 班
+                  </div>
+                  <div class="px-3 py-2 bg-slate-100 text-slate-600 text-xs rounded-xl">
+                    假日班次 {{ route.holidayTrips }} 班
+                  </div>
+                  <div class="px-3 py-2 bg-slate-100 text-slate-600 text-xs rounded-xl">
+                    票价种类 {{ route.fareTypes }} 种
                   </div>
                 </div>
               </div>
 
-              <div class="bg-white rounded-2xl border border-emerald-100/60 p-6 space-y-5">
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 class="text-lg font-semibold text-emerald-800">票价结构</h4>
-                    <p class="text-xs text-emerald-600">按日期类型与票价类别展示</p>
+              <div class="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl border border-blue-100/60 p-6 space-y-5">
+                  <div class="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 class="text-lg font-semibold text-blue-800">航班时间表</h4>
+                      <p class="text-xs text-blue-600">按日期类型与出发站点划分</p>
+                    </div>
+                    <div class="text-sm text-blue-600 bg-blue-50/70 px-3 py-1 rounded-full">
+                      共 {{ route.totalTrips }} 班次
+                    </div>
                   </div>
-                  <div class="text-sm text-emerald-700 bg-white/80 ring-1 ring-emerald-200/70 px-3 py-1 rounded-full">
-                    共 {{ route.fareTypes }} 种票价
+
+                  <div class="space-y-5">
+                    <div v-for="section in route.timetables" :key="section.dateType"
+                      class="rounded-2xl bg-white p-5 space-y-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div>
+                          <div class="text-sm font-medium text-blue-700">{{ section.dateLabel }}</div>
+                          <div class="text-xs text-slate-500">{{ section.dateDescription }}</div>
+                        </div>
+                        <div class="text-xs text-blue-700 bg-white/80 px-3 py-1 rounded-full">
+                          {{ section.tripCount }} 班
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div v-for="start in section.stops" :key="start.key"
+                          class="bg-slate-50 rounded-xl p-4 space-y-3">
+                          <div class="flex items-center justify-between mb-3">
+                            <div>
+                              <div class="text-sm font-semibold text-slate-800">{{ start.label }}</div>
+                              <div class="text-xs text-slate-500">{{ start.description }}</div>
+                            </div>
+                            <div class="text-xs text-slate-500 text-right">
+                              <div>首班 {{ start.firstDeparture }}</div>
+                              <div>末班 {{ start.lastDeparture }}</div>
+                            </div>
+                          </div>
+                          <div class="flex flex-wrap gap-3 justify-center">
+                            <div v-for="time in start.times" :key="time.id"
+                              class="text-sm font-medium text-slate-700 bg-slate-50 rounded-xl px-4 py-2 text-center min-w-[72px]">
+                              {{ time.display }}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div class="space-y-5">
-                  <div v-for="fareSection in route.fares" :key="fareSection.dateType"
-                    class="bg-white rounded-2xl p-5 space-y-4">
-                    <div class="flex items-center justify-between mb-3">
-                      <div>
-                        <div class="text-sm font-medium text-emerald-700">{{ fareSection.dateLabel }}</div>
-                        <div class="text-xs text-slate-500">{{ fareSection.dateDescription }}</div>
-                      </div>
-                      <div class="text-xs text-emerald-600 bg-emerald-50/80 px-3 py-1 rounded-full">
-                        {{ fareSection.typeCount }} 种票价
-                      </div>
+                <div class="bg-white rounded-2xl border border-emerald-100/60 p-6 space-y-5">
+                  <div class="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 class="text-lg font-semibold text-emerald-800">票价结构</h4>
+                      <p class="text-xs text-emerald-600">按日期类型与票价类别展示</p>
                     </div>
+                    <div class="text-sm text-emerald-700 bg-white/80 ring-1 ring-emerald-200/70 px-3 py-1 rounded-full">
+                      共 {{ route.fareTypes }} 种票价
+                    </div>
+                  </div>
 
-                    <div class="space-y-3">
-                      <div v-for="category in fareSection.categories" :key="category.key"
-                        class="bg-white rounded-xl p-4 space-y-3">
-                        <div class="flex items-center justify-between mb-2">
-                          <div>
-                            <div class="text-sm font-semibold text-slate-800">{{ category.label }}</div>
-                            <div class="text-xs text-slate-500">{{ category.description }}</div>
-                          </div>
-                          <div class="text-xs text-slate-500">{{ category.items.length }} 项</div>
+                  <div class="space-y-5">
+                    <div v-for="fareSection in route.fares" :key="fareSection.dateType"
+                      class="bg-white rounded-2xl p-5 space-y-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div>
+                          <div class="text-sm font-medium text-emerald-700">{{ fareSection.dateLabel }}</div>
+                          <div class="text-xs text-slate-500">{{ fareSection.dateDescription }}</div>
                         </div>
+                        <div class="text-xs text-emerald-600 bg-emerald-50/80 px-3 py-1 rounded-full">
+                          {{ fareSection.typeCount }} 种票价
+                        </div>
+                      </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div v-for="item in category.items" :key="item.key"
-                            class="bg-slate-50 rounded-xl px-3 py-3">
-                            <div class="flex items-start justify-between">
-                              <div>
-                                <div class="flex items-center gap-2">
-                                  <span :class="['px-2 py-1 text-xs font-medium rounded-md', item.badge]">
-                                    {{ item.label }}
-                                  </span>
-                                  <span class="text-xs text-slate-400">{{ item.code }}</span>
+                      <div class="space-y-3">
+                        <div v-for="category in fareSection.categories" :key="category.key"
+                          class="bg-white rounded-xl p-4 space-y-3">
+                          <div class="flex items-center justify-between mb-2">
+                            <div>
+                              <div class="text-sm font-semibold text-slate-800">{{ category.label }}</div>
+                              <div class="text-xs text-slate-500">{{ category.description }}</div>
+                            </div>
+                            <div class="text-xs text-slate-500">{{ category.items.length }} 项</div>
+                          </div>
+
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div v-for="item in category.items" :key="item.key"
+                              class="bg-slate-50 rounded-xl px-3 py-3">
+                              <div class="flex items-start justify-between">
+                                <div>
+                                  <div class="flex items-center gap-2">
+                                    <span :class="['px-2 py-1 text-xs font-medium rounded-md', item.badge]">
+                                      {{ item.label }}
+                                    </span>
+                                    <span class="text-xs text-slate-400">{{ item.code }}</span>
+                                  </div>
+                                  <div class="text-xs text-slate-500 mt-1">{{ item.description }}</div>
                                 </div>
-                                <div class="text-xs text-slate-500 mt-1">{{ item.description }}</div>
+                                <div class="text-base font-semibold text-emerald-700">{{ item.priceText }}</div>
                               </div>
-                              <div class="text-base font-semibold text-emerald-700">{{ item.priceText }}</div>
                             </div>
                           </div>
                         </div>
@@ -211,18 +235,97 @@ const error = ref('')
 const fareRows = ref([])
 const timeRows = ref([])
 
-const routeTypeDetails = {
-  L: {
-    label: '持牌渡轮服务',
-    title: '香港仔 ⇄ 榕树湾（经北角村）',
-    description: 'Licensed ferry service，覆盖香港仔至榕树湾往返航线。',
+const providersList = [
+  {
+    id: 'tsuiWah',
+    name: '翠华船务',
+    dataset: 'tsui-wah',
+    description: '香港仔 ⇄ 榕树湾（经北角村）航线，提供持牌渡轮服务。',
+    tagline: '香港仔 — 榕树湾（北角村）',
+    routeTypes: {
+      L: {
+        label: '持牌渡轮服务',
+        title: '香港仔 ⇄ 榕树湾（经北角村）',
+        description: 'Licensed ferry service，覆盖香港仔至榕树湾往返航线。',
+      },
+      K: {
+        label: '街渡服务',
+        title: 'Kaito 街渡服务',
+        description: 'Kaito service，通常服务离岛及小型码头。',
+      },
+    },
+    routeStarts: {
+      A: {
+        label: '香港仔出发',
+        description: '香港仔 → 榕树湾，经北角村',
+        order: 1,
+      },
+      Y: {
+        label: '榕树湾出发',
+        description: '榕树湾 → 香港仔，经北角村',
+        order: 2,
+      },
+    },
+    fareTypeOverrides: {
+      AS: {
+        description: '榕树湾 ⇄ 北角村路段',
+      },
+      CS: {
+        description: '榕树湾 ⇄ 北角村路段',
+      },
+      SS: {
+        description: '榕树湾 ⇄ 北角村路段',
+      },
+      DS: {
+        description: '榕树湾 ⇄ 北角村路段',
+      },
+      F: {
+        description: '货物每平方米收费',
+      },
+    },
   },
-  K: {
-    label: '街渡服务',
-    title: 'Kaito 街渡服务',
-    description: 'Kaito service，通常服务离岛及小型码头。',
+  {
+    id: 'chuenKee',
+    name: '全记渡',
+    dataset: 'chuen-kee',
+    description: '香港仔 ⇄ 索罟湾（经模达）航线，由全记渡营运。',
+    tagline: '香港仔 — 索罟湾（模达）',
+    routeTypes: {
+      L: {
+        label: '持牌渡轮服务',
+        title: '香港仔 ⇄ 索罟湾（经模达）',
+        description: 'Licensed ferry service，覆盖香港仔至索罟湾往返航线。',
+      },
+      K: {
+        label: '街渡服务',
+        title: 'Kaito 街渡服务',
+        description: 'Kaito service，通常服务离岛及小型码头。',
+      },
+    },
+    routeStarts: {
+      A: {
+        label: '香港仔出发',
+        description: '香港仔 → 索罟湾，经模达',
+        order: 1,
+      },
+      S: {
+        label: '索罟湾出发',
+        description: '索罟湾 → 香港仔，经模达',
+        order: 2,
+      },
+    },
+    fareTypeOverrides: {
+      C: {
+        description: '3至12岁（不含）儿童单程票',
+      },
+      F: {
+        description: '货物每0.11立方米收费',
+      },
+    },
   },
-}
+]
+
+const providersMap = Object.fromEntries(providersList.map((provider) => [provider.id, provider]))
 
 const dateTypeDetails = {
   W: {
@@ -230,6 +333,12 @@ const dateTypeDetails = {
     short: '周一至周六',
     description: 'Mondays to Saturdays except public holidays',
     order: 1,
+  },
+  WW: {
+    label: '星期一至星期六（特别班次）',
+    short: '特别班次',
+    description: 'Special sailings on Mondays to Saturdays（官方未单独说明）',
+    order: 1.5,
   },
   S: {
     label: '星期日及公众假期',
@@ -239,20 +348,8 @@ const dateTypeDetails = {
   },
 }
 
-const routeStartDetails = {
-  A: {
-    label: '香港仔出发',
-    description: '香港仔 → 榕树湾，经北角村',
-    order: 1,
-  },
-  Y: {
-    label: '榕树湾出发',
-    description: '榕树湾 → 香港仔，经北角村',
-    order: 2,
-  },
-}
-
 const fareTypeDetails = {
+  
   A: {
     label: '成人',
     description: '成人单程票',
@@ -283,28 +380,28 @@ const fareTypeDetails = {
   },
   AS: {
     label: '成人分段票',
-    description: '榕树湾 ⇄ 北角村路段',
+    description: '适用于航线指定分段',
     category: 'section',
     badge: 'bg-blue-50 text-blue-700',
     order: 1,
   },
   CS: {
     label: '儿童分段票',
-    description: '榕树湾 ⇄ 北角村路段',
+    description: '适用于航线指定分段',
     category: 'section',
     badge: 'bg-emerald-50 text-emerald-700',
     order: 2,
   },
   SS: {
     label: '长者分段票',
-    description: '榕树湾 ⇄ 北角村路段',
+    description: '适用于航线指定分段',
     category: 'section',
     badge: 'bg-purple-50 text-purple-700',
     order: 3,
   },
   DS: {
     label: '残疾人士分段票',
-    description: '榕树湾 ⇄ 北角村路段',
+    description: '适用于航线指定分段',
     category: 'section',
     badge: 'bg-amber-50 text-amber-700',
     order: 4,
@@ -332,7 +429,7 @@ const fareTypeDetails = {
   },
   F: {
     label: '货物收费',
-    description: '货物每平方米收费',
+    description: '货物收费（以官方规定单位计费）',
     category: 'freight',
     badge: 'bg-slate-200 text-slate-700',
     order: 1,
@@ -347,7 +444,7 @@ const fareCategoryDetails = {
   },
   section: {
     label: '分段票价（榕树湾 ⇄ 北角村）',
-    description: '仅适用于榕树湾与北角村之间路段',
+    description: '仅适用于航线指定区间',
     order: 2,
   },
   resident: {
@@ -362,7 +459,7 @@ const fareCategoryDetails = {
   },
   freight: {
     label: '货物收费',
-    description: '按货物占用面积收取费用',
+    description: '按官方规定的单位收取货运费用',
     order: 5,
   },
   other: {
@@ -372,12 +469,53 @@ const fareCategoryDetails = {
   },
 }
 
-const dateOrder = ['W', 'S']
-const routeStartOrder = ['A', 'Y']
+const fallbackFareDetail = {
+  label: '未命名票价',
+  description: '官方未提供详细说明',
+  category: 'other',
+  badge: 'bg-slate-100 text-slate-600',
+  order: 99,
+}
+
+const weekdayDateTypes = new Set(['W', 'WW'])
+
+const getProviderConfig = (providerId) => providersMap[providerId] ?? providersList[0]
+
+const getRouteTypeMeta = (providerId, routeType) => {
+  const provider = getProviderConfig(providerId)
+  return (
+    provider.routeTypes?.[routeType] ?? {
+      label: `路线 ${routeType}`,
+      title: `路线 ${routeType}`,
+      description: '官方尚未提供详细描述',
+    }
+  )
+}
+
+const getRouteStartMeta = (providerId, startCode) => {
+  const provider = getProviderConfig(providerId)
+  return (
+    provider.routeStarts?.[startCode] ?? {
+      label: `起点 ${startCode}`,
+      description: '官方未提供详细说明',
+      order: 99,
+    }
+  )
+}
+
+const getFareDetail = (providerId, fareType) => {
+  const base = fareTypeDetails[fareType]
+    ? { ...fareTypeDetails[fareType] }
+    : { ...fallbackFareDetail }
+  const providerOverride = getProviderConfig(providerId).fareTypeOverrides?.[fareType]
+  return providerOverride ? { ...base, ...providerOverride } : base
+}
+
+const dateOrder = ['W', 'WW', 'S']
 
 const withTrailingSlash = (value) => (value.endsWith('/') ? value : `${value}/`)
 const assetBase = withTrailingSlash(import.meta.env.BASE_URL || '/')
-const getAssetUrl = (name) => `${assetBase}data/tsui-wah/${name}`
+const getProviderAssetUrl = (dataset, name) => `${assetBase}data/${dataset}/${name}`
 
 const parseCsv = (text) => {
   const lines = text.trim().split(/\r?\n/).filter((line) => line.length > 0)
@@ -420,25 +558,41 @@ const loadFerryData = async () => {
   loading.value = true
   error.value = ''
   try {
-    const [fareResponse, timeResponse] = await Promise.all([
-      fetch(getAssetUrl('fare.csv')),
-      fetch(getAssetUrl('time.csv')),
-    ])
+    const results = await Promise.all(
+      providersList.map(async (provider) => {
+        const [fareResponse, timeResponse] = await Promise.all([
+          fetch(getProviderAssetUrl(provider.dataset, 'fare.csv')),
+          fetch(getProviderAssetUrl(provider.dataset, 'time.csv')),
+        ])
 
-    if (!fareResponse.ok || !timeResponse.ok) {
-      throw new Error('无法读取官方开放数据')
-    }
+        if (!fareResponse.ok || !timeResponse.ok) {
+          throw new Error(`无法读取${provider.name}开放数据`)
+        }
 
-    const [fareText, timeText] = await Promise.all([
-      fareResponse.text(),
-      timeResponse.text(),
-    ])
+        const [fareText, timeText] = await Promise.all([
+          fareResponse.text(),
+          timeResponse.text(),
+        ])
 
-    fareRows.value = parseFareRows(parseCsv(fareText))
-    timeRows.value = parseTimeRows(parseCsv(timeText))
+        return {
+          providerId: provider.id,
+          fares: parseFareRows(parseCsv(fareText)).map((row) => ({
+            ...row,
+            providerId: provider.id,
+          })),
+          times: parseTimeRows(parseCsv(timeText)).map((row) => ({
+            ...row,
+            providerId: provider.id,
+          })),
+        }
+      }),
+    )
+
+    fareRows.value = results.flatMap((item) => item.fares)
+    timeRows.value = results.flatMap((item) => item.times)
   } catch (err) {
     console.error('[TsuiWahFerry] 加载数据失败', err)
-    error.value = '加载翠华船务数据时出错，请稍后重试。'
+    error.value = '加载渡轮数据时出错，请稍后重试。'
   } finally {
     loading.value = false
   }
@@ -485,8 +639,10 @@ const formatScheduleTime = (value) => {
   return `${paddedHour}:${paddedMinute}`
 }
 
-const buildTimetables = (routeType) => {
-  const rows = timeRows.value.filter((row) => row.routeType === routeType)
+const buildTimetables = (providerId, routeType) => {
+  const rows = timeRows.value.filter(
+    (row) => row.providerId === providerId && row.routeType === routeType,
+  )
   const groupedByDate = new Map()
 
   rows.forEach((row) => {
@@ -508,16 +664,12 @@ const buildTimetables = (routeType) => {
         description: '',
       }
       const startMap = groupedByDate.get(dateType)
-      const stops = routeStartOrder
-        .filter((start) => startMap.has(start))
+      const stops = Array.from(startMap.keys())
         .map((start) => {
-          const meta = routeStartDetails[start] ?? {
-            label: start,
-            description: '',
-          }
+          const meta = getRouteStartMeta(providerId, start)
           const sortedTimes = sortTimes(startMap.get(start))
           const formattedTimes = sortedTimes.map((value, index) => ({
-            id: `${dateType}-${start}-${value}-${index}`,
+            id: `${providerId}-${routeType}-${dateType}-${start}-${value}-${index}`,
             value,
             display: formatScheduleTime(value),
           }))
@@ -528,8 +680,10 @@ const buildTimetables = (routeType) => {
             times: formattedTimes,
             firstDeparture: formatScheduleTime(sortedTimes[0]),
             lastDeparture: formatScheduleTime(sortedTimes[sortedTimes.length - 1]),
+            order: meta.order ?? 99,
           }
         })
+        .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.label.localeCompare(b.label))
 
       const tripCount = stops.reduce((sum, item) => sum + item.times.length, 0)
 
@@ -543,16 +697,8 @@ const buildTimetables = (routeType) => {
     })
 }
 
-const fallbackFareDetail = {
-  label: '未命名票价',
-  description: '官方未提供详细说明',
-  category: 'other',
-  badge: 'bg-slate-100 text-slate-600',
-  order: 99,
-}
-
-const buildFareSections = (routeType) => {
-  const rows = fareRows.value.filter((row) => row.routeType === routeType)
+const buildFareSections = (providerId, routeType) => {
+  const rows = fareRows.value.filter((row) => row.providerId === providerId && row.routeType === routeType)
   const groupedByDate = new Map()
 
   rows.forEach((row) => {
@@ -560,7 +706,7 @@ const buildFareSections = (routeType) => {
       groupedByDate.set(row.dateType, new Map())
     }
     const categoryMap = groupedByDate.get(row.dateType)
-    const detail = fareTypeDetails[row.fareType] ?? fallbackFareDetail
+    const detail = getFareDetail(providerId, row.fareType)
     if (!categoryMap.has(detail.category)) {
       categoryMap.set(detail.category, [])
     }
@@ -627,67 +773,87 @@ const formatFare = (value) => {
   })}`
 }
 
-const routeKeys = computed(() => {
-  const keys = new Set()
-  timeRows.value.forEach((row) => keys.add(row.routeType))
-  fareRows.value.forEach((row) => keys.add(row.routeType))
-  return Array.from(keys)
-})
+const services = computed(() => {
+  return providersList
+    .map((provider) => {
+      const providerTimeRows = timeRows.value.filter((row) => row.providerId === provider.id)
+      const providerFareRows = fareRows.value.filter((row) => row.providerId === provider.id)
 
-const routes = computed(() => {
-  return routeKeys.value.map((routeType) => {
-    const meta = routeTypeDetails[routeType] ?? {
-      label: `路线 ${routeType}`,
-      title: `路线 ${routeType}`,
-      description: '官方尚未提供详细描述',
-    }
+      const routeKeySet = new Set()
+      providerTimeRows.forEach((row) => routeKeySet.add(row.routeType))
+      providerFareRows.forEach((row) => routeKeySet.add(row.routeType))
+      const routeKeys = Array.from(routeKeySet)
 
-    const timetables = buildTimetables(routeType)
-    const fares = buildFareSections(routeType)
+      const routes = routeKeys
+        .map((routeType) => {
+          const meta = getRouteTypeMeta(provider.id, routeType)
+          const timetables = buildTimetables(provider.id, routeType)
+          const fares = buildFareSections(provider.id, routeType)
 
-    const weekdayTrips = timetables
-      .filter((section) => section.dateType === 'W')
-      .reduce((sum, section) => sum + section.tripCount, 0)
+          const weekdayTrips = timetables
+            .filter((section) => weekdayDateTypes.has(section.dateType))
+            .reduce((sum, section) => sum + section.tripCount, 0)
 
-    const holidayTrips = timetables
-      .filter((section) => section.dateType === 'S')
-      .reduce((sum, section) => sum + section.tripCount, 0)
+          const holidayTrips = timetables
+            .filter((section) => section.dateType === 'S')
+            .reduce((sum, section) => sum + section.tripCount, 0)
 
-    const totalTrips = timetables.reduce((sum, section) => sum + section.tripCount, 0)
+          const totalTrips = timetables.reduce((sum, section) => sum + section.tripCount, 0)
 
-    const fareTypes = unique(
-      fares.flatMap((section) => section.categories.flatMap((category) => category.items.map((item) => item.code))),
-    ).length
+          const fareTypes = unique(
+            fares.flatMap((section) =>
+              section.categories.flatMap((category) => category.items.map((item) => item.code)),
+            ),
+          ).length
 
-    return {
-      routeType,
-      typeLabel: meta.label,
-      title: meta.title,
-      description: meta.description,
-      timetables,
-      fares,
-      weekdayTrips,
-      holidayTrips,
-      totalTrips,
-      fareTypes,
-    }
-  })
+          return {
+            key: `${provider.id}-${routeType}`,
+            providerId: provider.id,
+            providerName: provider.name,
+            routeType,
+            typeLabel: meta.label,
+            title: meta.title,
+            description: meta.description,
+            timetables,
+            fares,
+            weekdayTrips,
+            holidayTrips,
+            totalTrips,
+            fareTypes,
+          }
+        })
+        .filter((route) => route.timetables.length > 0 || route.fares.length > 0)
+
+      const weekdayTrips = providerTimeRows.filter((row) => weekdayDateTypes.has(row.dateType)).length
+      const holidayTrips = providerTimeRows.filter((row) => row.dateType === 'S').length
+
+      return {
+        id: provider.id,
+        name: provider.name,
+        description: provider.description,
+        tagline: provider.tagline,
+        summary: {
+          routeCount: routes.length,
+          weekdayTrips,
+          holidayTrips,
+        },
+        routes,
+      }
+    })
+    .filter((service) => service.routes.length > 0)
 })
 
 const summaryMetrics = computed(() => {
-  const routeCount = routeKeys.value.length
-  const routeLabels = routeKeys.value
-    .map((key) => routeTypeDetails[key]?.label ?? key)
-    .join('、')
+  const providerCount = services.value.length
+  const providerNames = services.value.map((service) => service.name).join('、')
 
-  const totalTrips = timeRows.value.length
-  const weekdayTrips = timeRows.value.filter((row) => row.dateType === 'W').length
+  const weekdayTrips = timeRows.value.filter((row) => weekdayDateTypes.has(row.dateType)).length
   const holidayTrips = timeRows.value.filter((row) => row.dateType === 'S').length
 
-  const fareTypeCount = unique(fareRows.value.map((row) => row.fareType)).length
+  const fareTypeCount = unique(fareRows.value.map((row) => `${row.providerId}-${row.fareType}`)).length
   const fareNamesPreview = unique(
     fareRows.value
-      .map((row) => fareTypeDetails[row.fareType]?.label ?? row.fareType)
+      .map((row) => getFareDetail(row.providerId, row.fareType)?.label ?? row.fareType)
       .filter(Boolean),
   )
     .slice(0, 4)
@@ -695,11 +861,11 @@ const summaryMetrics = computed(() => {
 
   return [
     {
-      id: 'routes',
-      label: '航线类型',
-      value: routeCount,
-      unit: '种',
-      helper: routeLabels || '暂无航线数据',
+      id: 'providers',
+      label: '服务运营商',
+      value: providerCount,
+      unit: '家',
+      helper: providerNames || '暂无运营商数据',
       accent: 'text-blue-600',
     },
     {
@@ -715,7 +881,7 @@ const summaryMetrics = computed(() => {
       label: '工作日班次',
       value: weekdayTrips,
       unit: '班',
-      helper: '星期一至星期六（公众假期除外）',
+      helper: '包含 W / WW 班次',
       accent: 'text-sky-600',
     },
     {
