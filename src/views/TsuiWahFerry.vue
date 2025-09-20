@@ -6,7 +6,7 @@
       <div class="max-w-8xl mx-auto">
         <div class="text-center mb-10">
           <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            维港渡轮航班与票价总览
+            渡轮航班与票价总览
           </h1>
           <p class="text-lg text-slate-600">
             汇总翠华船务、全记渡及天星小轮等运营商的航班时间表与票价信息，集中展示维港与离岛主要渡轮的数据来源。
@@ -18,7 +18,8 @@
           <p class="mt-4 text-slate-600">正在获取最新航班与票价数据...</p>
         </div>
 
-        <div v-else-if="error" class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-red-100 p-8 text-center">
+        <div v-else-if="error"
+          class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-red-100 p-8 text-center">
           <div class="text-xl font-semibold text-red-600 mb-3">加载失败</div>
           <p class="text-slate-600 mb-6">{{ error }}</p>
           <button @click="loadFerryData"
@@ -62,7 +63,8 @@
           </div>
 
           <div v-for="service in services" :key="service.id" class="space-y-6 mb-12">
-            <div class="bg-white rounded-3xl ring-1 ring-slate-200/70 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div
+              class="bg-white rounded-3xl ring-1 ring-slate-200/70 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h2 class="text-2xl font-semibold text-slate-900">{{ service.name }}</h2>
                 <p class="text-sm text-slate-600 mt-1">{{ service.description }}</p>
@@ -148,20 +150,17 @@
                               <div>末班 {{ start.lastDeparture }}</div>
                             </div>
                           </div>
-                          <div
-                            :class="[
+                          <div :class="[
+                            start.layout === 'range'
+                              ? 'flex flex-col gap-3 text-left'
+                              : 'flex flex-wrap gap-3 justify-center'
+                          ]">
+                            <div v-for="time in start.times" :key="time.id" :class="[
+                              'text-sm font-medium text-slate-700 rounded-xl px-4 py-2',
                               start.layout === 'range'
-                                ? 'flex flex-col gap-3 text-left'
-                                : 'flex flex-wrap gap-3 justify-center'
-                            ]"
-                          >
-                            <div v-for="time in start.times" :key="time.id"
-                              :class="[
-                                'text-sm font-medium text-slate-700 rounded-xl px-4 py-2',
-                                start.layout === 'range'
-                                  ? 'bg-white border border-slate-200/60 w-full text-left'
-                                  : 'bg-slate-50 text-center min-w-[72px]'
-                              ]">
+                                ? 'bg-white border border-slate-200/60 w-full text-left'
+                                : 'bg-slate-50 text-center min-w-[72px]'
+                            ]">
                               {{ time.display }}
                             </div>
                           </div>
@@ -859,7 +858,7 @@ const dateTypeDetails = {
 }
 
 const fareTypeDetails = {
-  
+
   A: {
     label: '成人',
     description: '成人单程票',
@@ -1315,7 +1314,7 @@ const buildFareSections = (providerId, routeType) => {
     categoryMap.get(detail.category).push({
       code: row.fareType,
       price: row.farePrice,
-       priceText: row.priceText,
+      priceText: row.priceText,
       ...detail,
     })
   })
