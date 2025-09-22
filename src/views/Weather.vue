@@ -44,8 +44,7 @@
           <div class="flex-1">
             <h3 class="text-red-800 font-semibold text-lg mb-1">数据加载失败</h3>
             <p class="text-red-600 text-sm mb-3">{{ error }}</p>
-            <button @click="refreshData"
-              class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg">
+            <button @click="refreshData" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg">
               重试
             </button>
           </div>
@@ -65,8 +64,7 @@
           <!-- Weather Overview Cards -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Current Weather Card -->
-            <div
-              class="bg-white rounded-2xl shadow-lg p-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-sun-o text-3xl text-blue-500"></i>
                 <h3 class="text-xl font-semibold text-slate-900">当前天气</h3>
@@ -94,8 +92,7 @@
             </div>
 
             <!-- UV Index Card -->
-            <div
-              class="bg-white rounded-2xl shadow-lg p-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-sun-o text-3xl text-yellow-500"></i>
                 <h3 class="text-xl font-semibold text-slate-900">紫外线指数</h3>
@@ -112,8 +109,7 @@
             </div>
 
             <!-- Humidity Card -->
-            <div v-if="weatherData.humidity?.data?.[0]"
-              class="bg-white rounded-2xl shadow-lg p-8">
+            <div v-if="weatherData.humidity?.data?.[0]" class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-tint text-3xl text-blue-400"></i>
                 <h3 class="text-xl font-semibold text-slate-900">湿度</h3>
@@ -143,8 +139,7 @@
               <h3 class="text-2xl font-bold text-slate-900">天气警告</h3>
             </div>
 
-            <div v-if="warningError"
-              class="bg-red-50 border border-red-200 text-sm text-red-600 rounded-xl px-4 py-3">
+            <div v-if="warningError" class="bg-red-50 border border-red-200 text-sm text-red-600 rounded-xl px-4 py-3">
               {{ warningError }}
             </div>
 
@@ -184,7 +179,8 @@
                     <button type="button" @click="toggleWarning(warning.statementCode)"
                       class="text-sm font-medium text-amber-600 inline-flex items-center gap-1">
                       <span>{{ expandedWarnings[warning.statementCode] ? '收起详情' : '查看详情' }}</span>
-                      <i class="fa" :class="expandedWarnings[warning.statementCode] ? 'fa-angle-up' : 'fa-angle-down'"></i>
+                      <i class="fa"
+                        :class="expandedWarnings[warning.statementCode] ? 'fa-angle-up' : 'fa-angle-down'"></i>
                     </button>
                   </div>
                 </div>
@@ -199,7 +195,8 @@
                   </template>
                   <p v-else class="text-sm text-slate-500">暂无详细内容。</p>
                   <div class="text-xs text-slate-400 pt-2 border-t border-amber-100/50 mt-2">
-                    最后更新：{{ formatUpdateTime(getWarningDetail(warning.statementCode)?.updateTime || warning.updateTime) }}
+                    最后更新：{{ formatUpdateTime(getWarningDetail(warning.statementCode)?.updateTime || warning.updateTime)
+                    }}
                   </div>
                 </div>
               </div>
@@ -219,6 +216,23 @@
               {{ forecastError }}
             </div>
 
+            <!-- Warning Message -->
+            <div v-if="weatherData.warningMessage || weatherData.tcmessage?.length"
+              class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-5 border border-indigo-100 mb-6">
+              <div class="flex items-start gap-3">
+                <i class="fa fa-info-circle text-indigo-600 mt-0.5"></i>
+                <div class="flex-1 space-y-2">
+                  <p v-if="weatherData.warningMessage" class="text-slate-700 leading-relaxed">
+                    {{ weatherData.warningMessage }}
+                  </p>
+                  <p v-for="(message, index) in weatherData.tcmessage" :key="index"
+                    class="text-slate-700 leading-relaxed">
+                    {{ message }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- General Situation -->
             <div v-if="forecastData?.generalSituation"
               class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-5 border border-indigo-100 mb-6">
@@ -227,15 +241,14 @@
                 <p class="text-slate-700 leading-relaxed">{{ forecastData.generalSituation }}</p>
               </div>
               <div v-if="forecastData?.updateTime" class="text-xs text-slate-500 mt-3">
-                预报更新时间：{{ formatUpdateTime(forecastData.updateTime) }}
+                最后更新时间：{{ formatUpdateTime(forecastData.updateTime) }}
               </div>
             </div>
 
             <!-- Forecast Cards -->
             <div v-if="dailyForecasts.length"
               class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <div v-for="d in dailyForecasts" :key="d.forecastDate"
-                class="bg-white rounded-xl shadow-md p-4">
+              <div v-for="d in dailyForecasts" :key="d.forecastDate" class="bg-white rounded-xl shadow-md p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div>
                     <div class="text-slate-900 font-semibold">{{ d.week }}</div>
@@ -260,23 +273,6 @@
                     降雨概率：{{ d.PSR }}
                   </span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Warning Message -->
-          <div v-if="weatherData.warningMessage || weatherData.tcmessage?.length"
-            class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-5 border border-indigo-100">
-            <div class="flex items-start gap-3">
-              <i class="fa fa-info-circle text-indigo-600 mt-0.5"></i>
-              <div class="flex-1 space-y-2">
-                <p v-if="weatherData.warningMessage" class="text-slate-700 leading-relaxed">
-                  {{ weatherData.warningMessage }}
-                </p>
-                <p v-for="(message, index) in weatherData.tcmessage" :key="index"
-                  class="text-slate-700 leading-relaxed">
-                  {{ message }}
-                </p>
               </div>
             </div>
           </div>
@@ -310,8 +306,7 @@
           <div>
             <h2 class="text-3xl font-bold text-slate-900 text-center mb-8">各地区详细信息</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <div v-for="region in processedRegions" :key="region.name"
-                class="bg-white rounded-xl shadow-md p-4">
+              <div v-for="region in processedRegions" :key="region.name" class="bg-white rounded-xl shadow-md p-4">
                 <div class="flex justify-between items-center">
                   <h4 class="font-semibold text-slate-900 text-sm">{{ region.name }}</h4>
                   <div class="text-lg font-bold text-blue-600">
