@@ -18,12 +18,6 @@
               <span class="text-xs text-gray-500">Home</span>
             </div>
           </router-link>
-          <router-link to="/datahub" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-            <div class="flex flex-col items-center">
-              <span>信息中心</span>
-              <span class="text-xs text-gray-500">Data Hub</span>
-            </div>
-          </router-link>
           <router-link to="/store" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
             <div class="flex flex-col items-center">
               <span>商城</span>
@@ -36,8 +30,8 @@
             <button @click="toggleDropdown(cityTransitOpen ? '' : 'cityTransit')"
               class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
-                <span>城市与出行</span>
-                <span class="text-xs text-gray-500">City & Transit</span>
+                <span>城市出行</span>
+                <span class="text-xs text-gray-500">City Transit</span>
               </div>
               <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': cityTransitOpen }" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -221,8 +215,8 @@
             <button @click="toggleDropdown(facilitiesOpen ? '' : 'facilities')"
               class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
-                <span>生活设施与附近</span>
-                <span class="text-xs text-gray-500">Facilities & Nearby</span>
+                <span>生活设施</span>
+                <span class="text-xs text-gray-500">Facilities</span>
               </div>
               <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': facilitiesOpen }" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -368,8 +362,8 @@
             <button @click="toggleDropdown(eventsOpen ? '' : 'events')"
               class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
-                <span>活动与票务</span>
-                <span class="text-xs text-gray-500">Events & Tickets</span>
+                <span>活动票务</span>
+                <span class="text-xs text-gray-500">Events Tickets</span>
               </div>
               <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': eventsOpen }" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -410,12 +404,6 @@
             </div>
           </div>
 
-          <router-link to="/chat" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-            <div class="flex flex-col items-center">
-              <span>AI</span>
-              <span class="text-xs text-gray-500">Assistant</span>
-            </div>
-          </router-link>
         </div>
 
         <!-- Right side controls -->
@@ -494,10 +482,6 @@
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
           首页
         </router-link>
-        <router-link to="/datahub" @click="isOpen = false"
-          class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
-          信息中心
-        </router-link>
         <router-link to="/store" @click="isOpen = false"
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
           商城
@@ -506,7 +490,7 @@
         <!-- Mobile City & Transit Section -->
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2">
-            <div class="text-sm font-semibold text-gray-900 mb-2">城市与出行 City & Transit</div>
+            <div class="text-sm font-semibold text-gray-900 mb-2">城市出行 City Transit</div>
           </div>
 
           <router-link to="/weather" @click="isOpen = false"
@@ -594,7 +578,7 @@
         <!-- Mobile Facilities & Nearby Section -->
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2">
-            <div class="text-sm font-semibold text-gray-900 mb-2">生活设施与附近 Facilities & Nearby</div>
+            <div class="text-sm font-semibold text-gray-900 mb-2">生活设施 Facilities</div>
           </div>
 
           <router-link to="/wifi" @click="isOpen = false"
@@ -658,7 +642,7 @@
         <!-- Mobile Events & Tickets Section -->
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2">
-            <div class="text-sm font-semibold text-gray-900 mb-2">活动与票务 Events & Tickets</div>
+            <div class="text-sm font-semibold text-gray-900 mb-2">活动票务 Events Tickets</div>
           </div>
 
           <router-link to="/tickets" @click="isOpen = false"
@@ -672,13 +656,6 @@
           <router-link to="/holidays" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-calendar-check-o w-4 text-red-500 mr-2"></i>公共假期
-          </router-link>
-        </div>
-
-        <div class="border-t border-gray-100 pt-2 mt-2">
-          <router-link to="/chat" @click="isOpen = false"
-            class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
-            AI
           </router-link>
         </div>
 

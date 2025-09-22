@@ -62,8 +62,7 @@
                   <n-select v-model:value="selectedStartLine" :options="lineOptions" :disabled="!subwayData"
                     placeholder="选择线路" @update:value="onStartLineChange" />
                   <n-select v-model:value="selectedStartPoiid" :options="startStationOptions"
-                    :disabled="!startLineStations.length" placeholder="选择站点"
-                    @update:value="onStartStationChange" />
+                    :disabled="!startLineStations.length" placeholder="选择站点" @update:value="onStartStationChange" />
                 </div>
               </div>
 
@@ -85,8 +84,7 @@
                   <n-select v-model:value="selectedEndLine" :options="lineOptions" :disabled="!subwayData"
                     placeholder="选择线路" @update:value="onEndLineChange" />
                   <n-select v-model:value="selectedEndPoiid" :options="endStationOptions"
-                    :disabled="!endLineStations.length" placeholder="选择站点"
-                    @update:value="onEndStationChange" />
+                    :disabled="!endLineStations.length" placeholder="选择站点" @update:value="onEndStationChange" />
                 </div>
               </div>
 
@@ -225,7 +223,7 @@
                     <div class="arrival-list">
                       <div v-for="train in lineArrival.arrivals.UP.slice(0, 4)" :key="train.seq" class="arrival-item">
                         <span class="train-dest">前往 {{ getStationChineseName(lineArrival.line_code, train.dest)
-                          }}</span>
+                        }}</span>
                         <span class="train-time">{{ train.time.substring(11, 16) }}</span>
                         <span class="train-minutes" :class="{ 'arriving': parseInt(train.ttnt) <= 1 }">
                           {{ parseInt(train.ttnt) === 0 ? '正在到达' : `${train.ttnt}分钟后` }}
@@ -243,7 +241,7 @@
                     <div class="arrival-list">
                       <div v-for="train in lineArrival.arrivals.DOWN.slice(0, 4)" :key="train.seq" class="arrival-item">
                         <span class="train-dest">前往 {{ getStationChineseName(lineArrival.line_code, train.dest)
-                          }}</span>
+                        }}</span>
                         <span class="train-time">{{ train.time.substring(11, 16) }}</span>
                         <span class="train-minutes" :class="{ 'arriving': parseInt(train.ttnt) <= 1 }">
                           {{ parseInt(train.ttnt) === 0 ? '正在到达' : `${train.ttnt}分钟后` }}
@@ -342,7 +340,7 @@
                       <div class="station-name">{{ segment.endname }}</div>
                       <div class="station-details">
                         <span class="direction-info">开往 {{ currentRouteResult.segments[segmentIndex + 1].directionName
-                          }}方向</span>
+                        }}方向</span>
                         <div class="time-info">
                           <span class="time-tag first-train">首 {{ currentRouteResult.segments[segmentIndex +
                             1].stationStartTime }}</span>
@@ -513,31 +511,17 @@ const fetchSubwayData = async () => {
 // 线路选择变化处理
 const onStartLineChange = () => {
   selectedStartPoiid.value = ''
-  // 自动展开搜索栏以便继续选择
+  // 保持搜索栏展开，便于继续选择站点
   if (!searchExpanded.value) {
     searchExpanded.value = true
-  }
-  // 选择线路后调用showLine方法
-  if (selectedStartLine.value && iframeLoaded.value) {
-    sendMessageToIframe('showLine', { lineId: selectedStartLine.value })
-
-    // 选择线路后立即关闭搜索栏
-    searchExpanded.value = false
   }
 }
 
 const onEndLineChange = () => {
   selectedEndPoiid.value = ''
-  // 自动展开搜索栏以便继续选择
+  // 保持搜索栏展开，便于继续选择站点
   if (!searchExpanded.value) {
     searchExpanded.value = true
-  }
-  // 选择线路后调用showLine方法
-  if (selectedEndLine.value && iframeLoaded.value) {
-    sendMessageToIframe('showLine', { lineId: selectedEndLine.value })
-
-    // 选择线路后立即关闭搜索栏
-    searchExpanded.value = false
   }
 }
 
