@@ -227,6 +227,31 @@
                     <i class="fa" :class="getFavoriteCategoryIcon(stop.id)"></i>
                     <span class="ml-1">{{ favoriteButtonLabel(stop.id) }}</span>
                   </button>
+                  <button @click="toggleOtherRoutes(stop)"
+                    class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors whitespace-nowrap">
+                    <i class="fa fa-random mr-1"></i>
+                    查看其他线路
+                  </button>
+                </div>
+                <div v-if="activeOtherRoutesStop === stop.id" class="mt-2 w-full">
+                  <div v-if="getOtherRoutesForStop(stop.id).length"
+                    class="bg-white border border-slate-200 rounded-lg px-3 py-2 space-y-2">
+                    <div v-for="other in getOtherRoutesForStop(stop.id)" :key="`${stop.id}-${other.route}-${other.company}`"
+                      class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                      <span
+                        class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                        {{ other.route }}
+                      </span>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                        {{ mapCompany(other.company) }}
+                      </span>
+                      <span class="flex items-center gap-1 flex-1 min-w-[140px] text-slate-500">
+                        <i class="fa fa-long-arrow-right text-slate-400"></i>
+                        <span>{{ other.dest || '目的地待获取' }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div v-else class="text-xs text-slate-400">暂无其它线路</div>
                 </div>
               </div>
             </li>
@@ -260,7 +285,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { NModal } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
@@ -306,6 +331,8 @@ const favoriteStops = ref([])
 const showFavoriteMenu = ref(null)
 const favoriteMenuPosition = ref({ x: 0, y: 0 })
 const pendingFavoriteStop = ref(null)
+const stopRoutesMap = ref({})
+const activeOtherRoutesStop = ref('')
 
 const FERRY_COMPANY_CONFIG = {
   tsuiWah: {
@@ -565,6 +592,66 @@ const favoriteMenuStyle = computed(() => {
   }
 })
 
+const buildStopRoutesMap = (routeEntries) => {
+  const result = {}
+  routeEntries.forEach((route) => {
+    const companies = route.co || []
+    companies.forEach((companyId) => {
+      const stopSequence = route.stops?.[companyId] || []
+      const boundInfo = route.bound
+      let direction = ''
+      if (typeof boundInfo === 'string') {
+        direction = boundInfo
+      } else if (boundInfo && typeof boundInfo === 'object') {
+        direction = boundInfo[companyId] || ''
+      }
+
+      stopSequence.forEach((stopId) => {
+        if (!result[stopId]) {
+          result[stopId] = []
+        }
+        result[stopId].push({
+          route: route.route,
+          company: companyId,
+          key: route.key,
+          dest: route.dest?.zh || route.dest?.en || '',
+        })
+      })
+    })
+  })
+  return result
+}
+
+const getOtherRoutesForStop = (stopId) => {
+  if (!stopId) return []
+  const entries = stopRoutesMap.value[stopId] || []
+  const currentKey = selectedRoute.value?.key
+  const currentCompany = activeCompany.value
+
+  const unique = new Map()
+  entries.forEach((entry) => {
+    if (entry.key === currentKey && entry.company === currentCompany) {
+      return
+    }
+    const uniqueKey = `${entry.route}-${entry.company}`
+    if (!unique.has(uniqueKey)) {
+      unique.set(uniqueKey, entry)
+    }
+  })
+
+  return Array.from(unique.values())
+}
+
+const toggleOtherRoutes = (stop) => {
+  if (!stop?.id) return
+  closeFavoriteMenu()
+  if (activeOtherRoutesStop.value === stop.id) {
+    activeOtherRoutesStop.value = ''
+    return
+  }
+  activeOtherRoutesStop.value = stop.id
+}
+
 const modalStyle = reactive({
   width: '720px',
   maxWidth: '90vw',
@@ -748,6 +835,8 @@ const openRouteDetail = (item) => {
   selectedRouteKey.value = item.key
   const firstCompany = item.co?.[0] || 'kmb'
   activeCompany.value = firstCompany
+  activeOtherRoutesStop.value = ''
+  closeFavoriteMenu()
   showStops.value = true
   nextTick(() => {
     loadEtasForStops()
@@ -756,10 +845,13 @@ const openRouteDetail = (item) => {
 
 const closeModal = () => {
   showStops.value = false
+  activeOtherRoutesStop.value = ''
+  closeFavoriteMenu()
 }
 
 const setActiveCompany = (companyId) => {
   activeCompany.value = companyId
+  activeOtherRoutesStop.value = ''
   nextTick(() => {
     loadEtasForStops()
   })
@@ -771,6 +863,7 @@ const toggleDirection = () => {
   const currentCompany = activeCompany.value
   const companies = reverseRoute.value.co || []
   activeCompany.value = companies.includes(currentCompany) ? currentCompany : companies[0] || ''
+  activeOtherRoutesStop.value = ''
   nextTick(() => {
     loadEtasForStops()
   })
@@ -824,6 +917,7 @@ const loadRoutes = async () => {
     const data = await response.json()
     const entries = Object.entries(data.routeList || {})
     routes.value = entries.map(([key, value]) => ({ key, ...value }))
+    stopRoutesMap.value = buildStopRoutesMap(routes.value)
     stopList.value = data.stopList || {}
     holidays.value = data.holidays || []
     serviceDayMap.value = data.serviceDayMap || {}
@@ -833,6 +927,7 @@ const loadRoutes = async () => {
     displayCount.value = 100
   } catch (err) {
     error.value = err.message || '载入数据时出现未知错误'
+    stopRoutesMap.value = {}
   } finally {
     loading.value = false
   }
@@ -842,5 +937,12 @@ onMounted(() => {
   loadFavorites()
   loadRoutes()
   // console.log(routes)
+})
+
+watch(showStops, (visible) => {
+  if (!visible) {
+    activeOtherRoutesStop.value = ''
+    closeFavoriteMenu()
+  }
 })
 </script>
