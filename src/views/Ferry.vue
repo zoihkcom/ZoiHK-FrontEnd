@@ -46,11 +46,11 @@
             <div>
               <div class="text-xs font-medium text-blue-500 uppercase tracking-widest">当前筛选</div>
               <div class="text-base font-semibold text-slate-900 mt-1">{{ filterTagline }}</div>
-              <p class="text-xs text-slate-500 mt-1">仅展示指定渡轮航线，可返回查看完整列表。</p>
+              <p class="text-xs text-slate-500 mt-1">仅展示指定渡轮航线，可返回上一页查看完整列表。</p>
             </div>
-            <button @click="clearFilter"
+            <button @click="goBack"
               class="inline-flex items-center px-4 py-2 rounded-xl border border-blue-200 text-blue-600 text-sm font-medium hover:bg-blue-50 transition-colors">
-              查看全部航班
+              返回上一页
             </button>
           </div>
 
@@ -322,7 +322,11 @@ const showSummaryMetrics = computed(() => !hasFilter.value)
 
 const showNoResult = computed(() => hasFilter.value && !displayServices.value.length && !loading.value && !error.value)
 
-const clearFilter = () => {
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
   router.replace({ path: '/ferry' })
 }
 
