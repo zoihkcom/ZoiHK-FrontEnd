@@ -95,7 +95,12 @@
                         </span>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <button
+                        <router-link v-if="item.type === 'ferry'"
+                          class="inline-flex items-center px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                          :to="{ path: '/ferry', query: { provider: item.providerId, route: item.sourceRouteKey } }">
+                          查看详情
+                        </router-link>
+                        <button v-else
                           class="inline-flex items-center px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
                           @click="openRouteDetail(item)">
                           查看详情
@@ -221,6 +226,7 @@ import { NModal } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import { fetchEtas } from 'hk-bus-eta'
+import { useFerryServices } from '@/composables/useFerryServices'
 
 const COMPANY_MAP = {
   kmb: '九巴 KMB',
@@ -234,7 +240,10 @@ const COMPANY_MAP = {
   sunferry: '新渡轮',
   lrtfeeder: '轻铁接驳',
   fortuneferry: '富裕小轮',
-  lightRail: "轻铁"   
+  lightRail: '轻铁',
+  ferryTsuiWah: '翠华船务',
+  ferryChuenKee: '全记渡',
+  ferryStarFerry: '天星小轮',
 }
 
 const loading = ref(false)
@@ -251,16 +260,130 @@ const holidays = ref([])
 const serviceDayMap = ref({})
 const etaState = reactive({})
 
+const { services: ferryServices } = useFerryServices()
+
+const FERRY_COMPANY_CONFIG = {
+  tsuiWah: {
+    companyId: 'ferryTsuiWah',
+    defaultRouteCode: 'FW1',
+  },
+  chuenKee: {
+    companyId: 'ferryChuenKee',
+    defaultRouteCode: 'FW2',
+  },
+  starFerryCentralTST: {
+    companyId: 'ferryStarFerry',
+    defaultRouteCode: 'SF-CEN',
+  },
+  starFerryWanchaiTST: {
+    companyId: 'ferryStarFerry',
+    defaultRouteCode: 'SF-WCH',
+  },
+}
+
+const FERRY_ROUTE_CODE_MAP = {
+  'tsuiWah-L': 'FW1',
+  'tsuiWah-K': 'FW1-K',
+  'chuenKee-L': 'FW2',
+  'chuenKee-K': 'FW2-K',
+  'starFerryCentralTST-SF-CEN-TST': 'SF-CEN',
+  'starFerryWanchaiTST-SF-WAN-TST': 'SF-WCH',
+}
+
+const cleanEndpointText = (value = '') => value.replace(/（.*?）/g, '').trim()
+
+const extractEndpoints = (title = '', fallback = '') => {
+  const candidates = [title, fallback]
+  for (const text of candidates) {
+    if (!text) continue
+    const parts = text.split(/[↔⇄→-]/).map((part) => cleanEndpointText(part)).filter(Boolean)
+    if (parts.length >= 2) {
+      return {
+        origZh: parts[0],
+        destZh: parts[parts.length - 1],
+      }
+    }
+  }
+  const trimmed = cleanEndpointText(title || fallback)
+  return {
+    origZh: trimmed || '未知码头',
+    destZh: trimmed || '未知码头',
+  }
+}
+
+const extractFareValue = (route) => {
+  if (!route?.fares?.length) {
+    return ''
+  }
+  for (const section of route.fares) {
+    for (const category of section.categories || []) {
+      const adultItem = category.items?.find((item) => /成人/.test(item.label))
+      const candidate = adultItem || category.items?.[0]
+      if (candidate?.priceText) {
+        const match = candidate.priceText.match(/(\d+(?:\.\d+)?)/)
+        if (match) {
+          return match[1]
+        }
+      }
+    }
+  }
+  return ''
+}
+
+const ferryRouteEntries = computed(() => {
+  return ferryServices.value.flatMap((service) => {
+    const companyConfig = FERRY_COMPANY_CONFIG[service.id]
+    if (!companyConfig) {
+      return []
+    }
+    return service.routes.map((route, index) => {
+      const routeCode =
+        FERRY_ROUTE_CODE_MAP[route.key] || FERRY_ROUTE_CODE_MAP[`${service.id}-${route.routeType}`] ||
+        `${companyConfig.defaultRouteCode}${index > 0 ? `-${index + 1}` : ''}`
+
+      const { origZh, destZh } = extractEndpoints(route.title, service.tagline)
+      const fareValue = extractFareValue(route)
+
+      const keywords = [
+        service.name,
+        service.tagline,
+        route.title,
+        route.description,
+      ].filter(Boolean)
+
+      return {
+        key: `ferry-${route.key}`,
+        route: routeCode,
+        orig: { zh: origZh, en: origZh },
+        dest: { zh: destZh, en: destZh },
+        co: [companyConfig.companyId],
+        fares: fareValue ? [fareValue] : [],
+        serviceType: 'FERRY',
+        type: 'ferry',
+        detailUrl: '/ferry',
+        keywords,
+        description: route.description,
+        stops: { [companyConfig.companyId]: [] },
+        providerId: service.id,
+        sourceRouteKey: route.key,
+        routeType: route.routeType,
+      }
+    })
+  })
+})
+
+const allRoutes = computed(() => [...routes.value, ...ferryRouteEntries.value])
+
 const modalStyle = reactive({
   width: '720px',
   maxWidth: '90vw',
 })
 
-const totalRoutes = computed(() => routes.value.length)
+const totalRoutes = computed(() => allRoutes.value.length)
 
 const companyFilterOptions = computed(() => {
   const map = new Map()
-  routes.value.forEach((item) => {
+  allRoutes.value.forEach((item) => {
     item.co.forEach((id) => {
       if (!map.has(id)) {
         map.set(id, mapCompany(id))
@@ -272,7 +395,7 @@ const companyFilterOptions = computed(() => {
 
 const filteredRoutes = computed(() => {
   const keyword = searchQuery.value.trim().toLowerCase()
-  return routes.value.filter((item) => {
+  return allRoutes.value.filter((item) => {
     if (companyFilter.value !== 'all' && !item.co.includes(companyFilter.value)) {
       return false
     }
@@ -283,6 +406,7 @@ const filteredRoutes = computed(() => {
       item.orig.en,
       item.dest.zh,
       item.dest.en,
+      ...(item.keywords || []),
     ]
       .filter(Boolean)
       .some((field) => field.toLowerCase().includes(keyword))
@@ -293,12 +417,12 @@ const displayedRoutes = computed(() => filteredRoutes.value.slice(0, displayCoun
 
 const hasMore = computed(() => displayCount.value < filteredRoutes.value.length)
 
-const selectedRoute = computed(() => routes.value.find((item) => item.key === selectedRouteKey.value) || null)
+const selectedRoute = computed(() => allRoutes.value.find((item) => item.key === selectedRouteKey.value) || null)
 
 const reverseRoute = computed(() => {
   if (!selectedRoute.value) return null
   const current = selectedRoute.value
-  const match = routes.value.find((item) => {
+  const match = allRoutes.value.find((item) => {
     if (item.route !== current.route || item.key === current.key) return false
     const sameZh = item.orig?.zh === current.dest?.zh && item.dest?.zh === current.orig?.zh
     const sameEn = item.orig?.en === current.dest?.en && item.dest?.en === current.orig?.en
