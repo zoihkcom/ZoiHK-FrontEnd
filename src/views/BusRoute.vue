@@ -187,13 +187,13 @@
           <ol class="space-y-3">
             <li v-for="stop in stopDetails" :key="stop.id"
               class="bg-slate-50 rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
+              <div class="sm:flex-1 min-w-0">
                 <p class="text-sm font-semibold text-slate-900">{{ stop.index }}. {{ stop.nameZh }}</p>
-                <p class="text-xs text-slate-500">{{ stop.nameEn }}</p>
-                <p class="text-xs text-slate-400 mt-1">ID: {{ stop.id }}</p>
+                <p class="text-xs text-slate-500 break-words">{{ stop.nameEn }}</p>
+                <p class="text-xs text-slate-400 mt-1 break-all">ID: {{ stop.id }}</p>
                 <p class="text-xs text-slate-400">Lat: {{ stop.lat }} | Lng: {{ stop.lng }}</p>
               </div>
-              <div class="flex flex-col sm:items-end gap-2 min-w-[180px]">
+              <div class="flex flex-col sm:items-end gap-2 min-w-[180px] sm:flex-none sm:w-64">
                 <div class="flex items-center gap-2">
                   <span class="text-xs text-slate-400 uppercase tracking-widest">票价</span>
                   <span class="inline-flex items-center px-3 py-1 rounded-xl"
@@ -211,12 +211,51 @@
                   </div>
                   <p v-if="stop.etaRemark" class="text-[11px] text-slate-400">{{ stop.etaRemark }}</p>
                 </div>
+                <div class="flex flex-wrap sm:flex-nowrap gap-2 sm:justify-end pt-1">
+                  <button @click="viewStopOnMap(stop)"
+                    class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors whitespace-nowrap">
+                    <i class="fa fa-map-marker mr-1"></i>
+                    在地图查看
+                  </button>
+                  <button @click="navigateToStop(stop)"
+                    class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors whitespace-nowrap">
+                    <i class="fa fa-location-arrow mr-1"></i>
+                    导航到站台
+                  </button>
+                  <button @click="toggleStopFavorite(stop, $event)"
+                    :class="['inline-flex items-center px-3 py-1 text-xs font-medium rounded-xl transition-colors whitespace-nowrap', favoriteButtonClass(stop.id)]">
+                    <i class="fa" :class="getFavoriteCategoryIcon(stop.id)"></i>
+                    <span class="ml-1">{{ favoriteButtonLabel(stop.id) }}</span>
+                  </button>
+                </div>
               </div>
             </li>
           </ol>
         </div>
       </div>
     </n-modal>
+    <Teleport to="body">
+      <div v-if="showFavoriteMenu" class="fixed inset-0 z-[3500]" @click="closeFavoriteMenu">
+        <div class="absolute bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[170px]" :style="favoriteMenuStyle"
+          @click.stop>
+          <button @click="addFavoriteWithCategory('normal')"
+            class="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center text-left">
+            <i class="fa fa-star text-yellow-500 mr-2"></i>
+            收藏站台
+          </button>
+          <button @click="addFavoriteWithCategory('home')"
+            class="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center text-left">
+            <i class="fa fa-home text-blue-500 mr-2"></i>
+            设为家庭站台
+          </button>
+          <button @click="addFavoriteWithCategory('office')"
+            class="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center text-left">
+            <i class="fa fa-building text-emerald-500 mr-2"></i>
+            设为办公室站台
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -261,6 +300,12 @@ const serviceDayMap = ref({})
 const etaState = reactive({})
 
 const { services: ferryServices } = useFerryServices()
+
+const FAVORITES_KEY = 'bus:favoriteStops'
+const favoriteStops = ref([])
+const showFavoriteMenu = ref(null)
+const favoriteMenuPosition = ref({ x: 0, y: 0 })
+const pendingFavoriteStop = ref(null)
 
 const FERRY_COMPANY_CONFIG = {
   tsuiWah: {
@@ -373,6 +418,152 @@ const ferryRouteEntries = computed(() => {
 })
 
 const allRoutes = computed(() => [...routes.value, ...ferryRouteEntries.value])
+
+const loadFavorites = () => {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    favoriteStops.value = Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.warn('读取收藏数据失败', error)
+    favoriteStops.value = []
+  }
+}
+
+const saveFavorites = () => {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoriteStops.value))
+  } catch (error) {
+    console.warn('保存收藏数据失败', error)
+  }
+}
+
+const isStopFavorite = (stopId) => {
+  if (!stopId) return false
+  return favoriteStops.value.some((item) => item.stop === stopId)
+}
+
+const getFavoriteInfo = (stopId) => favoriteStops.value.find((item) => item.stop === stopId)
+
+const getFavoriteCategoryText = (stopId) => {
+  const info = getFavoriteInfo(stopId)
+  if (!info) return '收藏站台'
+  switch (info.category) {
+    case 'home':
+      return '家庭站台'
+    case 'office':
+      return '办公室站台'
+    default:
+      return '已收藏'
+  }
+}
+
+const getFavoriteCategoryIcon = (stopId) => {
+  const info = getFavoriteInfo(stopId)
+  if (!info) return 'fa-star-o'
+  switch (info.category) {
+    case 'home':
+      return 'fa-home'
+    case 'office':
+      return 'fa-building'
+    default:
+      return 'fa-star'
+  }
+}
+
+const favoriteButtonLabel = (stopId) => getFavoriteCategoryText(stopId)
+
+const favoriteButtonClass = (stopId) =>
+  isStopFavorite(stopId)
+    ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+
+const closeFavoriteMenu = () => {
+  showFavoriteMenu.value = null
+  pendingFavoriteStop.value = null
+}
+
+const toggleStopFavorite = (stop, event) => {
+  if (!stop?.id) return
+  const existingIndex = favoriteStops.value.findIndex((item) => item.stop === stop.id)
+  if (existingIndex >= 0) {
+    favoriteStops.value.splice(existingIndex, 1)
+    saveFavorites()
+    closeFavoriteMenu()
+    return
+  }
+
+  pendingFavoriteStop.value = stop
+  const rect = event.currentTarget.getBoundingClientRect()
+  favoriteMenuPosition.value = {
+    x: rect.left + rect.width / 2,
+    y: rect.top,
+  }
+  showFavoriteMenu.value = stop.id
+}
+
+const addFavoriteWithCategory = (category) => {
+  const stop = pendingFavoriteStop.value
+  if (!stop?.id) return
+
+  const latNumber = Number(stop.lat)
+  const lngNumber = Number(stop.lng)
+
+  favoriteStops.value.push({
+    stop: stop.id,
+    name_tc: stop.nameZh,
+    name_en: stop.nameEn,
+    lat: Number.isFinite(latNumber) ? latNumber : null,
+    longitude: Number.isFinite(lngNumber) ? lngNumber : null,
+    category,
+    added_at: new Date().toISOString(),
+  })
+  saveFavorites()
+  closeFavoriteMenu()
+}
+
+const getStopSearchName = (stop) => stop.nameZh || stop.nameEn || '巴士站'
+
+const viewStopOnMap = (stop) => {
+  if (!stop) return
+  const lat = Number(stop.lat)
+  const lng = Number(stop.lng)
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`
+    window.open(url, '_blank')
+    return
+  }
+
+  const searchQuery = `香港${getStopSearchName(stop)}`
+  const url = `https://www.google.com/maps/search/${encodeURIComponent(searchQuery)}`
+  window.open(url, '_blank')
+}
+
+const navigateToStop = (stop) => {
+  if (!stop) return
+  const lat = Number(stop.lat)
+  const lng = Number(stop.lng)
+
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+    window.open(url, '_blank')
+    return
+  }
+
+  const destination = `香港${getStopSearchName(stop)}`
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
+  window.open(url, '_blank')
+}
+
+const favoriteMenuStyle = computed(() => {
+  const top = Math.max(favoriteMenuPosition.value.y - 140, 16)
+  return {
+    left: `${favoriteMenuPosition.value.x}px`,
+    top: `${top}px`,
+    transform: 'translateX(-50%)',
+  }
+})
 
 const modalStyle = reactive({
   width: '720px',
@@ -648,6 +839,7 @@ const loadRoutes = async () => {
 }
 
 onMounted(() => {
+  loadFavorites()
   loadRoutes()
   // console.log(routes)
 })
