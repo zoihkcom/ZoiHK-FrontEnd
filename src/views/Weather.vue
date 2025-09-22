@@ -17,7 +17,7 @@
 
           <div class="flex flex-col items-center gap-4">
             <button @click="refreshData" :disabled="loading"
-              class="group inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl gap-2">
+              class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 shadow-lg gap-2">
               <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
                 <path fill="currentColor" class="opacity-75"
@@ -45,7 +45,7 @@
             <h3 class="text-red-800 font-semibold text-lg mb-1">数据加载失败</h3>
             <p class="text-red-600 text-sm mb-3">{{ error }}</p>
             <button @click="refreshData"
-              class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+              class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg">
               重试
             </button>
           </div>
@@ -66,7 +66,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Current Weather Card -->
             <div
-              class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-sun-o text-3xl text-blue-500"></i>
                 <h3 class="text-xl font-semibold text-slate-900">当前天气</h3>
@@ -95,7 +95,7 @@
 
             <!-- UV Index Card -->
             <div
-              class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-sun-o text-3xl text-yellow-500"></i>
                 <h3 class="text-xl font-semibold text-slate-900">紫外线指数</h3>
@@ -113,7 +113,7 @@
 
             <!-- Humidity Card -->
             <div v-if="weatherData.humidity?.data?.[0]"
-              class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-tint text-3xl text-blue-400"></i>
                 <h3 class="text-xl font-semibold text-slate-900">湿度</h3>
@@ -130,6 +130,76 @@
                   <div class="absolute inset-0 flex flex-col items-center justify-center">
                     <div class="text-2xl font-bold text-green-600">{{ weatherData.humidity.data[0].value }}%</div>
                     <div class="text-xs text-slate-500 mt-1">{{ weatherData.humidity.data[0].place }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weather Warnings -->
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <i class="fa fa-exclamation-triangle text-2xl text-amber-500"></i>
+              <h3 class="text-2xl font-bold text-slate-900">天气警告</h3>
+            </div>
+
+            <div v-if="warningError"
+              class="bg-red-50 border border-red-200 text-sm text-red-600 rounded-xl px-4 py-3">
+              {{ warningError }}
+            </div>
+
+            <div v-else-if="warningsLoading"
+              class="flex items-center gap-3 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <span class="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+              正在加载天气警告...
+            </div>
+
+            <div v-else-if="!warningsToDisplay.length"
+              class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-500">
+              目前没有生效中的天气警告。
+            </div>
+
+            <div v-else class="space-y-4">
+              <div v-for="warning in warningsToDisplay" :key="warning.statementCode"
+                class="rounded-xl px-4 py-4 bg-amber-50">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-lg font-semibold text-slate-900">{{ warning.name }}</span>
+                      <span v-if="warning.type"
+                        class="text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                        {{ warning.type }}
+                      </span>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-2">
+                      发布时间：{{ formatUpdateTime(warning.issueTime || warning.updateTime) }}
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full border"
+                      :class="warningStatusBadgeClass(warning.actionCode)">
+                      {{ warningActionText(warning.actionCode) }}
+                    </span>
+                    <button type="button" @click="toggleWarning(warning.statementCode)"
+                      class="text-sm font-medium text-amber-600 inline-flex items-center gap-1">
+                      <span>{{ expandedWarnings[warning.statementCode] ? '收起详情' : '查看详情' }}</span>
+                      <i class="fa" :class="expandedWarnings[warning.statementCode] ? 'fa-angle-up' : 'fa-angle-down'"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="expandedWarnings[warning.statementCode]"
+                  class="mt-4 bg-amber-50 rounded-lg px-4 py-3 space-y-2">
+                  <template v-if="getWarningDetail(warning.statementCode)?.contents?.length">
+                    <p v-for="(line, idx) in getWarningDetail(warning.statementCode).contents" :key="idx"
+                      class="text-sm text-slate-700 leading-relaxed">
+                      {{ line }}
+                    </p>
+                  </template>
+                  <p v-else class="text-sm text-slate-500">暂无详细内容。</p>
+                  <div class="text-xs text-slate-400 pt-2 border-t border-amber-100/50 mt-2">
+                    最后更新：{{ formatUpdateTime(getWarningDetail(warning.statementCode)?.updateTime || warning.updateTime) }}
                   </div>
                 </div>
               </div>
@@ -165,7 +235,7 @@
             <div v-if="dailyForecasts.length"
               class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <div v-for="d in dailyForecasts" :key="d.forecastDate"
-                class="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                class="bg-white rounded-xl shadow-md p-4">
                 <div class="flex items-center justify-between mb-3">
                   <div>
                     <div class="text-slate-900 font-semibold">{{ d.week }}</div>
@@ -214,7 +284,7 @@
           <!-- Charts Section -->
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
             <!-- Temperature Chart -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-thermometer-half text-2xl text-red-500"></i>
                 <h3 class="text-xl font-semibold text-slate-900">各地区温度分布</h3>
@@ -225,7 +295,7 @@
             </div>
 
             <!-- Rainfall Chart -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
               <div class="flex items-center gap-3 mb-6">
                 <i class="fa fa-cloud text-2xl text-blue-600"></i>
                 <h3 class="text-xl font-semibold text-slate-900">降雨量分布</h3>
@@ -241,7 +311,7 @@
             <h2 class="text-3xl font-bold text-slate-900 text-center mb-8">各地区详细信息</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <div v-for="region in processedRegions" :key="region.name"
-                class="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                class="bg-white rounded-xl shadow-md p-4">
                 <div class="flex justify-between items-center">
                   <h4 class="font-semibold text-slate-900 text-sm">{{ region.name }}</h4>
                   <div class="text-lg font-bold text-blue-600">
@@ -299,6 +369,11 @@ const loading = ref(false)
 const error = ref('')
 const forecastData = ref(null)
 const forecastError = ref('')
+const warningsLoading = ref(false)
+const warningError = ref('')
+const warningSummary = ref([])
+const warningDetails = ref({})
+const expandedWarnings = ref({})
 const temperatureChartRef = ref(null)
 const rainfallChartRef = ref(null)
 const uvGaugeRef = ref(null)
@@ -310,6 +385,8 @@ let refreshInterval = null
 
 const API_URL = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=sc'
 const FND_API_URL = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=sc'
+const WARNING_SUMMARY_URL = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=sc'
+const WARNING_DETAILS_URL = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warningInfo&lang=sc'
 
 const fetchWeatherData = async () => {
   try {
@@ -337,9 +414,11 @@ const refreshData = async () => {
     loading.value = true
     error.value = ''
     forecastError.value = ''
+    warningError.value = ''
     await Promise.allSettled([
       fetchWeatherData(),
-      fetchForecastData()
+      fetchForecastData(),
+      fetchWarningData()
     ])
   } catch (err) {
     console.error('获取数据失败:', err)
@@ -397,6 +476,111 @@ const fetchForecastData = async () => {
     console.error('Error fetching forecast data:', err)
     forecastError.value = '无法获取9天天气预报数据'
   }
+}
+
+const fetchWarningData = async () => {
+  warningsLoading.value = true
+  try {
+    const [summaryResponse, detailResponse] = await Promise.all([
+      fetch(WARNING_SUMMARY_URL),
+      fetch(WARNING_DETAILS_URL)
+    ])
+
+    if (!summaryResponse.ok) {
+      throw new Error(`Summary HTTP error! status: ${summaryResponse.status}`)
+    }
+    if (!detailResponse.ok) {
+      throw new Error(`Detail HTTP error! status: ${detailResponse.status}`)
+    }
+
+    const summaryJson = await summaryResponse.json()
+    const detailJson = await detailResponse.json()
+
+    const parsedSummary = Object.entries(summaryJson || {}).map(([statementCode, payload]) => ({
+      ...(payload || {}),
+      statementCode
+    }))
+
+    warningSummary.value = parsedSummary
+
+    const nextExpanded = {}
+    parsedSummary.forEach((item) => {
+      if (expandedWarnings.value[item.statementCode]) {
+        nextExpanded[item.statementCode] = true
+      }
+    })
+    expandedWarnings.value = nextExpanded
+
+    const detailMap = {}
+    if (Array.isArray(detailJson?.details)) {
+      detailJson.details.forEach((item) => {
+        if (item?.warningStatementCode) {
+          detailMap[item.warningStatementCode] = item
+        }
+      })
+    }
+
+    warningDetails.value = detailMap
+  } catch (err) {
+    console.error('Error fetching warning data:', err)
+    warningError.value = '无法获取天气警告信息'
+    warningSummary.value = []
+    warningDetails.value = {}
+    expandedWarnings.value = {}
+  } finally {
+    warningsLoading.value = false
+  }
+}
+
+const warningsToDisplay = computed(() => {
+  if (!warningSummary.value.length) return []
+  return [...warningSummary.value].sort((a, b) => {
+    const timeA = new Date(a.updateTime || a.issueTime || 0).getTime()
+    const timeB = new Date(b.updateTime || b.issueTime || 0).getTime()
+    return timeB - timeA
+  })
+})
+
+const warningActionText = (actionCode) => {
+  const map = {
+    ISSUE: '生效中',
+    UPDATE: '已更新',
+    CANCEL: '已取消',
+    EXTEND: '延长生效',
+    DOWNGRADE: '警告下调',
+    PREPARE: '准备发布'
+  }
+  return map[actionCode] || '状态更新'
+}
+
+const warningStatusBadgeClass = (actionCode) => {
+  switch (actionCode) {
+    case 'ISSUE':
+      return 'bg-red-50 text-red-600 border-red-200'
+    case 'UPDATE':
+      return 'bg-blue-50 text-blue-600 border-blue-200'
+    case 'EXTEND':
+      return 'bg-amber-50 text-amber-600 border-amber-200'
+    case 'DOWNGRADE':
+      return 'bg-green-50 text-green-600 border-green-200'
+    case 'CANCEL':
+      return 'bg-slate-100 text-slate-500 border-slate-200'
+    case 'PREPARE':
+      return 'bg-purple-50 text-purple-600 border-purple-200'
+    default:
+      return 'bg-slate-100 text-slate-600 border-slate-200'
+  }
+}
+
+const toggleWarning = (statementCode) => {
+  expandedWarnings.value = {
+    ...expandedWarnings.value,
+    [statementCode]: !expandedWarnings.value[statementCode]
+  }
+}
+
+const getWarningDetail = (statementCode) => {
+  return warningDetails.value?.[statementCode] || null
 }
 
 const dailyForecasts = computed(() => Array.isArray(forecastData.value?.weatherForecast) ? forecastData.value.weatherForecast : [])
