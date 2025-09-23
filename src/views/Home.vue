@@ -260,35 +260,35 @@
 
         <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
           <div
-            class="feature-card group bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border border-slate-100">
+            class="feature-card bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100">
             <div class="text-5xl mb-6">🧠</div>
             <h3 class="text-xl font-semibold text-slate-900 mb-3">AI智能助手</h3>
             <p class="text-slate-600 leading-relaxed">自然语言查询香港生活信息，智能理解您的需求</p>
           </div>
 
           <div
-            class="feature-card group bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border border-slate-100">
+            class="feature-card bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100">
             <div class="text-5xl mb-6">🚇</div>
             <h3 class="text-xl font-semibold text-slate-900 mb-3">地铁路线图</h3>
             <p class="text-slate-600 leading-relaxed">香港地铁交互式线路图，站点查询，路径规划一键搞定</p>
           </div>
 
           <div
-            class="feature-card group bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border border-slate-100">
+            class="feature-card bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100">
             <div class="text-5xl mb-6">🗺️</div>
             <h3 class="text-xl font-semibold text-slate-900 mb-3">生活信息</h3>
             <p class="text-slate-600 leading-relaxed">天气、空气质量、生活设施等全方位信息服务</p>
           </div>
 
           <div
-            class="feature-card group bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border border-slate-100">
+            class="feature-card bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100">
             <div class="text-5xl mb-6">💰</div>
             <h3 class="text-xl font-semibold text-slate-900 mb-3">交通出行</h3>
             <p class="text-slate-600 leading-relaxed">地铁、巴士实时信息，最优路线规划</p>
           </div>
 
           <div
-            class="feature-card group bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border border-slate-100">
+            class="feature-card bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-100">
             <div class="text-5xl mb-6">🌐</div>
             <h3 class="text-xl font-semibold text-slate-900 mb-3">政府数据</h3>
             <p class="text-slate-600 leading-relaxed">整合香港政府开放数据，确保信息权威准确</p>
