@@ -5,14 +5,10 @@
 
     <!-- Hero Section -->
     <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-7xl mx-auto text-center">
-        <h1 class="text-5xl font-bold text-slate-900 mb-6">
-          强大的
-          <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            AI功能
-          </span>
-        </h1>
-        <p class="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+      <div class="max-w-7xl mx-auto text-center space-y-3">
+        <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">SmartHK Features</p>
+        <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">强大的 AI 功能</h1>
+        <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
           我们的TripGenie助手集成了最先进的AI技术和丰富的数据源，为你提供全方位的旅行规划服务
         </p>
       </div>

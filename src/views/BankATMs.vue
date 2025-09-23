@@ -3,13 +3,10 @@
     <Navbar />
     <div class="pt-20 px-4 sm:px-6 lg:px-8 pb-20">
       <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-8">
-          <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
-            <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              香港银行自动柜员机信息
-            </span>
-          </h1>
-          <p class="text-lg text-slate-600 mb-6">查看香港各区银行自动柜员机位置、支持功能与网络</p>
+        <div class="text-center space-y-3 mb-8">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Bank ATMs</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">香港银行自动柜员机信息</h1>
+          <p class="text-base sm:text-lg text-slate-600">查看香港各区银行自动柜员机位置、支持功能与网络</p>
         </div>
 
         <div v-if="loading" class="flex justify-center items-center py-20">

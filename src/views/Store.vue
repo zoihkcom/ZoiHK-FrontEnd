@@ -7,12 +7,11 @@
       <div class="max-w-6xl mx-auto w-full">
         <div class="py-20 sm:py-28 lg:py-32">
           <div class="text-center space-y-8">
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight leading-tight">
-              <span
-                class="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-transparent">SmartHK
-                商城</span>
+            <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">SmartHK Store</p>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-slate-900">
+              SmartHK 商城
             </h1>
-            <p class="text-xl sm:text-2xl text-slate-500 max-w-3xl mx-auto leading-relaxed font-light">
+            <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
               智慧香港，一站购齐。从数字服务到实用配件，让生活更简单。
             </p>
 

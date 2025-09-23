@@ -8,11 +8,10 @@
       <div class="max-w-7xl mx-auto">
         <div class="pt-20 pb-32 grid lg:grid-cols-2 gap-20 items-center">
           <!-- Hero Text -->
-          <div class="text-center lg:text-left">
+          <div class="text-center lg:text-left space-y-4">
+            <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">SmartHK Home</p>
             <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight tracking-tight">
-              <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                SmartHK
-              </span>
+              SmartHK
               <br>
               <span class="whitespace-nowrap">让香港生活更加智能便捷</span>
             </h1>

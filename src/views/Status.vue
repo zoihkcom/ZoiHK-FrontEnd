@@ -5,14 +5,13 @@
     <!-- Header -->
     <section class="pt-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div class="max-w-4xl mx-auto">
-        <div class="py-16 sm:py-20 text-center">
-          <div class="flex items-center justify-center gap-3 mb-6">
+        <div class="py-16 sm:py-20 text-center space-y-3">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">SmartHK Status</p>
+          <div class="flex items-center justify-center gap-3">
             <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-            <h1 class="text-3xl sm:text-4xl font-light tracking-tight text-slate-900">
-              系统状态
-            </h1>
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">系统状态</h1>
           </div>
-          <p class="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
             实时监控 SmartHK 各项服务的运行状态，确保为您提供稳定可靠的服务体验。
           </p>
         </div>

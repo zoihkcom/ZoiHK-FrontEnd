@@ -4,7 +4,8 @@
     <div class="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto space-y-8">
         <header class="text-center space-y-3">
-          <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">跨境巴士查询</h1>
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Cross-Border Bus</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">跨境巴士查询</h1>
           <p class="text-slate-600 text-base sm:text-lg">
             选择城市与站点，即时查看跨境班次信息与票价。
           </p>

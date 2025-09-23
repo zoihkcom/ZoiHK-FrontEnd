@@ -3,10 +3,11 @@
     <Navbar />
     <div class="pt-24 py-8">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-8">
-          <h1 class="text-4xl font-bold text-gray-900 mb-2">公共交通设施/巴士转乘站法定禁烟区</h1>
-          <p class="text-xl text-gray-600 mb-2">Public Transport Facilities / Bus Interchanges - Statutory No Smoking Areas</p>
-          <p class="text-sm text-gray-500">数据来源：卫生署控烟酒办公室 (Tobacco and Alcohol Control Office, Department of Health)</p>
+        <div class="text-center space-y-3 mb-8">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong No Smoking</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">公共交通设施/巴士转乘站法定禁烟区</h1>
+          <p class="text-base sm:text-lg text-slate-600">Public Transport Facilities / Bus Interchanges - Statutory No Smoking Areas</p>
+          <p class="text-sm text-slate-500">数据来源：卫生署控烟酒办公室 (Tobacco and Alcohol Control Office, Department of Health)</p>
         </div>
 
         <!-- Loading State -->

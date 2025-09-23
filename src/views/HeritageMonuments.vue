@@ -4,8 +4,9 @@
     <div class="page-body">
       <div class="header">
         <div class="title">
-          <h1>法定古蹟 Declared Monuments</h1>
-          <p class="subtitle">数据来源：AMO（坐标：EPSG:4326）</p>
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Declared Monuments</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">法定古蹟</h1>
+          <p class="subtitle text-sm text-slate-500">数据来源：AMO（坐标：EPSG:4326）</p>
         </div>
         <div class="actions">
           <button class="btn" @click="reload" :disabled="loading">
@@ -217,15 +218,11 @@ onMounted(load)
 }
 
 .title h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
+  margin: 4px 0 0 0;
 }
 
 .subtitle {
   margin: 6px 0 0 0;
-  color: #6b7280;
-  font-size: 12px;
 }
 
 .actions {

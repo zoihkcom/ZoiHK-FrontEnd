@@ -4,18 +4,16 @@
 
     <div class="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-12">
-          <span class="inline-flex items-center px-4 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
-            香港运输署数据源
-          </span>
-          <h1 class="mt-4 text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight">
-            交通通告资讯中心
-          </h1>
-          <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-            集中展示禁区、限速、封路、特别安排等最新通告，协助快速掌握各类道路与公共交通资讯。
-          </p>
+        <div class="text-center space-y-5 mb-12">
+          <div class="space-y-3">
+            <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Traffic Notices</p>
+            <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">交通通告资讯中心</h1>
+            <p class="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto">
+              集中展示禁区、限速、封路、特别安排等最新通告，协助快速掌握各类道路与公共交通资讯。
+            </p>
+          </div>
 
-          <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
               type="button"

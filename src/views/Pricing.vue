@@ -5,14 +5,10 @@
     
     <!-- Hero Section -->
     <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-5xl font-bold text-slate-900 mb-6">
-          选择适合你的
-          <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            服务方案
-          </span>
-        </h1>
-        <p class="text-xl text-slate-600 leading-relaxed">
+      <div class="max-w-4xl mx-auto text-center space-y-3">
+        <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">SmartHK Pricing</p>
+        <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">选择适合你的服务方案</h1>
+        <p class="text-base sm:text-lg text-slate-600 leading-relaxed">
           无论是个人旅行还是商业用途，我们都有合适的方案满足你的需求
         </p>
       </div>

@@ -7,14 +7,11 @@
     <div class="pt-20 px-4 sm:px-6 lg:px-8 pb-20">
       <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
-        <div class="text-center mb-8">
-          <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
-            <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              香港公共单车泊位信息
-            </span>
-          </h1>
-          <p class="text-lg text-slate-600 mb-2">查看香港各区公共单车泊位分布情况</p>
-          <p class="text-sm text-slate-500 mb-6">数据来源：康乐及文化事务署辖下场地内公共单车泊位</p>
+        <div class="text-center space-y-3 mb-8">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Bike Parking</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">香港公共单车泊位信息</h1>
+          <p class="text-base sm:text-lg text-slate-600">查看香港各区公共单车泊位分布情况</p>
+          <p class="text-sm text-slate-500">数据来源：康乐及文化事务署辖下场地内公共单车泊位</p>
         </div>
 
         <!-- Loading State -->

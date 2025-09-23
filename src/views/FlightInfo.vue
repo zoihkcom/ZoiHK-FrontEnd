@@ -4,13 +4,10 @@
 
     <div class="pt-20 px-4 sm:px-6 lg:px-8 pb-20">
       <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-12">
-          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight tracking-tight mb-4">
-            <span class="bg-gradient-to-r from-blue-600 via-sky-600 to-cyan-600 bg-clip-text text-transparent">
-              香港机场航班信息
-            </span>
-          </h1>
-          <p class="text-xl text-slate-600 mb-8">实时航班到达和出发信息</p>
+        <div class="text-center space-y-3 mb-12">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Flight Info</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">香港机场航班信息</h1>
+          <p class="text-base sm:text-lg text-slate-600">实时航班到达和出发信息</p>
 
           <div class="flex flex-col items-center gap-4">
             <div class="flex gap-4">

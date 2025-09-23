@@ -5,14 +5,10 @@
     
     <!-- Hero Section -->
     <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-5xl font-bold text-slate-900 mb-6">
-          关于
-          <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            TripGenie
-          </span>
-        </h1>
-        <p class="text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
+      <div class="max-w-4xl mx-auto text-center space-y-3">
+        <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">About TripGenie</p>
+        <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">关于 TripGenie</h1>
+        <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
           我们致力于用AI技术重新定义旅行规划体验，让每一次旅行都成为完美的回忆
         </p>
       </div>

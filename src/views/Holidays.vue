@@ -5,13 +5,10 @@
     <div class="pt-20 px-4 pb-4">
       <div class="w-full">
         <!-- Header -->
-        <div ref="headerRef" class="text-center mb-6">
-          <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight tracking-tight mb-2">
-            <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              活动假期日历
-            </span>
-          </h1>
-          <p class="text-slate-600">从 1823 接口获取公众假期，支持多选并在日历中高亮显示。同时，还可以查看香港政府举办的各类活动信息。</p>
+        <div ref="headerRef" class="text-center space-y-3 mb-6">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Holidays</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">活动假期日历</h1>
+          <p class="text-base sm:text-lg text-slate-600">从 1823 接口获取公众假期，支持多选并在日历中高亮显示。同时，还可以查看香港政府举办的各类活动信息。</p>
         </div>
 
         <!-- Loading / Error -->

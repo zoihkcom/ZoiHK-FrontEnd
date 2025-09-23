@@ -4,11 +4,10 @@
 
     <div class="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
       <div class="max-w-8xl mx-auto">
-        <div class="text-center mb-10">
-          <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            渡轮航班与票价总览
-          </h1>
-          <p class="text-lg text-slate-600">
+        <div class="text-center space-y-3 mb-10">
+          <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Ferry</p>
+          <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">渡轮航班与票价总览</h1>
+          <p class="text-base sm:text-lg text-slate-600">
             汇总翠华船务、全记渡及天星小轮等运营商的航班时间表与票价信息，集中展示维港与离岛主要渡轮的数据来源。
           </p>
         </div>
