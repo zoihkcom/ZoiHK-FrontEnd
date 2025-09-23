@@ -101,12 +101,7 @@
             </n-button>
           </div>
         </section>
-
         <section class="space-y-4">
-          <div v-if="runsError" class="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
-            {{ runsError }}
-          </div>
-
           <div v-if="runsLoading" class="bg-white rounded-2xl border border-slate-200 px-6 py-10 text-center">
             <div class="w-12 h-12 mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             <p class="text-slate-600">正在获取班次与票价信息...</p>
@@ -159,10 +154,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useMessage } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import { crossBorderBusApi } from '@/api/crossBorderBus.js'
 
 const SINGLE_TRIP = 0
+
+const message = useMessage()
 
 const getTodayString = () => {
   const now = new Date()
@@ -306,9 +304,17 @@ const fetchStations = async () => {
     ])
     flattenedOnStations.value = flattenStations(handleApiResponse(onRes))
     flattenedOffStations.value = flattenStations(handleApiResponse(offRes))
+    if (!flattenedOnStations.value.length) {
+      message.warning('暂无出发站点')
+    }
+    if (!flattenedOffStations.value.length) {
+      message.warning('暂无到达站点')
+    }
     runsError.value = ''
   } catch (error) {
-    runsError.value = error.message || '获取站点信息失败'
+    const errMsg = error.message || '获取站点信息失败'
+    runsError.value = errMsg
+    message.error(errMsg)
     resetStations()
   } finally {
     onStationsLoading.value = false
@@ -350,7 +356,9 @@ const fetchSeatInfo = async (runIds) => {
 
 const loadRuns = async () => {
   if (!selectedOnStationId.value || !selectedOffStationId.value) {
-    runsError.value = '请先选择完整的站点信息'
+    const warnMsg = '请先选择完整的站点信息'
+    runsError.value = warnMsg
+    message.warning(warnMsg)
     return
   }
   seatInfoMap.value = {}
@@ -368,7 +376,9 @@ const loadRuns = async () => {
     runsLoaded.value = true
     await fetchSeatInfo(runInfoList.value.map((run) => run.runId))
   } catch (error) {
-    runsError.value = error.message || '获取班次信息失败'
+    const errMsg = error.message || '获取班次信息失败'
+    runsError.value = errMsg
+    message.error(errMsg)
     runInfoList.value = []
     runsLoaded.value = false
   } finally {

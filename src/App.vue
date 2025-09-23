@@ -1,6 +1,6 @@
 <script setup>
 import { RouterView } from 'vue-router'
-import { NConfigProvider, NGlobalStyle, zhCN, dateZhCN } from 'naive-ui'
+import { NConfigProvider, NGlobalStyle, zhCN, dateZhCN, NMessageProvider } from 'naive-ui'
 
 const themeOverrides = {
   common: {
@@ -22,7 +22,9 @@ const themeOverrides = {
 <template>
   <NConfigProvider :theme-overrides="themeOverrides" :locale="zhCN" :date-locale="dateZhCN">
     <NGlobalStyle />
-    <RouterView />
+    <NMessageProvider>
+      <RouterView />
+    </NMessageProvider>
   </NConfigProvider>
 
 </template>
