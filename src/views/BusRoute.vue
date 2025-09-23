@@ -30,7 +30,7 @@
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <h2 class="text-2xl font-semibold text-slate-900">共 {{ totalRoutes }} 条路线</h2>
-                  <p class="text-sm text-slate-500 mt-1">数据来源：static routeList.json，支持按线路、站点目的地关键字检索</p>
+                  <p class="text-sm text-slate-500 mt-1">数据来源：routeList.json 与 tramways_main_routes_sc.csv，支持按线路、站点目的地关键字检索</p>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                   <div class="flex-1 sm:flex-none sm:w-72">
@@ -100,6 +100,10 @@
                           :to="{ path: '/ferry', query: { provider: item.providerId, route: item.sourceRouteKey } }">
                           查看详情
                         </router-link>
+                        <span v-else-if="item.type === 'tram'"
+                          class="inline-flex items-center px-3 py-2 rounded-xl bg-slate-100 text-slate-500 text-sm font-medium">
+                          仅展示基础资料
+                        </span>
                         <button v-else
                           class="inline-flex items-center px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
                           @click="openRouteDetail(item)">
@@ -308,11 +312,15 @@ const COMPANY_MAP = {
   ferryTsuiWah: '翠华船务',
   ferryChuenKee: '全记渡',
   ferryStarFerry: '天星小轮',
+  hktram: '香港电车 Hong Kong Tramways',
 }
+
+const TRAM_COMPANY_ID = 'hktram'
 
 const loading = ref(false)
 const error = ref('')
 const routes = ref([])
+const tramRoutes = ref([])
 const stopList = ref({})
 const searchQuery = ref('')
 const companyFilter = ref('all')
@@ -444,7 +452,58 @@ const ferryRouteEntries = computed(() => {
   })
 })
 
-const allRoutes = computed(() => [...routes.value, ...ferryRouteEntries.value])
+const allRoutes = computed(() => [...routes.value, ...ferryRouteEntries.value, ...tramRoutes.value])
+
+const parseTramCsv = (csvText) => {
+  const sanitized = (csvText || '').replace(/^\uFEFF/, '')
+  const lines = sanitized
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (!lines.length) {
+    return []
+  }
+
+  return lines.slice(1).map((line, index) => {
+    const cells = line.split(',').map((cell) => cell.trim())
+    const [routeRaw = '', originRaw = '', destRaw = ''] = cells
+    const normalizedRouteId = String(routeRaw || '').trim()
+    const routeId = normalizedRouteId || `TRAM-${index + 1}`
+    const originZh = originRaw || '未知起点'
+    const destZh = destRaw || '未知终点'
+    const originEn = originRaw || 'Unknown Origin'
+    const destEn = destRaw || 'Unknown Destination'
+
+    return {
+      key: `tram-${routeId}`,
+      route: routeId,
+      orig: { zh: originZh, en: originEn },
+      dest: { zh: destZh, en: destEn },
+      co: [TRAM_COMPANY_ID],
+      fares: [],
+      serviceType: 'TRAM',
+      type: 'tram',
+      stops: { [TRAM_COMPANY_ID]: [] },
+      keywords: [routeId, originZh, destZh, '香港电车', 'Hong Kong Tramways'].filter(Boolean),
+    }
+  })
+}
+
+const loadTramRoutes = async () => {
+  try {
+    tramRoutes.value = []
+    const response = await fetch('/tramways_main_routes_sc.csv', { cache: 'no-store' })
+    if (!response.ok) {
+      console.error(`香港电车路线数据请求失败：${response.status}`)
+      return
+    }
+    const csvText = await response.text()
+    tramRoutes.value = parseTramCsv(csvText)
+  } catch (err) {
+    console.error('载入香港电车路线数据时出现异常', err)
+    tramRoutes.value = []
+  }
+}
 
 const loadFavorites = () => {
   try {
@@ -921,6 +980,7 @@ const loadRoutes = async () => {
     stopList.value = data.stopList || {}
     holidays.value = data.holidays || []
     serviceDayMap.value = data.serviceDayMap || {}
+    await loadTramRoutes()
     Object.keys(etaState).forEach((key) => {
       delete etaState[key]
     })
@@ -928,6 +988,7 @@ const loadRoutes = async () => {
   } catch (err) {
     error.value = err.message || '载入数据时出现未知错误'
     stopRoutesMap.value = {}
+    tramRoutes.value = []
   } finally {
     loading.value = false
   }
