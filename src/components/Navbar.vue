@@ -78,6 +78,15 @@
                   </div>
                 </router-link>
 
+                <router-link to="/cross-border-bus"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-globe w-4 text-blue-500"></i>
+                  <div>
+                    <div class="font-medium">跨境巴士</div>
+                    <div class="text-xs text-gray-500">Cross-border Coach</div>
+                  </div>
+                </router-link>
+
                 <div class="border-t border-gray-100 my-2"></div>
 
                 <div class="px-3 py-1">
@@ -505,6 +514,10 @@
           <router-link to="/bus" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-exchange w-4 text-indigo-500 mr-2"></i>公交路线总览
+          </router-link>
+          <router-link to="/cross-border-bus" @click="isOpen = false"
+            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-globe w-4 text-blue-500 mr-2"></i>跨境巴士
           </router-link>
           <router-link to="/subway" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
