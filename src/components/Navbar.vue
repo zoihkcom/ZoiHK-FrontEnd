@@ -402,6 +402,12 @@
               <span class="text-xs text-gray-500">HK Store</span>
             </div>
           </router-link>
+          <router-link to="/datahub" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+            <div class="flex flex-col items-center">
+              <span>数据源</span>
+              <span class="text-xs text-gray-500">Data Hub</span>
+            </div>
+          </router-link>
         </div>
 
         <!-- Right side controls -->
@@ -655,6 +661,10 @@
         <router-link to="/store" @click="isOpen = false"
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
           在港商城
+        </router-link>
+        <router-link to="/datahub" @click="isOpen = false"
+          class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
+          数据源
         </router-link>
 
         <!-- Mobile Language & Auth Section -->

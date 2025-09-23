@@ -15,29 +15,16 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="on-city">出发城市</label>
-              <n-select
-                v-model:value="selectedOnCityId"
-                :options="departureCityOptions"
-                placeholder="请选择出发城市"
-                clearable
-                class="w-full"
-                :input-props="{ id: 'on-city' }"
-              />
+              <n-select v-model:value="selectedOnCityId" :options="departureCityOptions" placeholder="请选择出发城市" clearable
+                class="w-full" :input-props="{ id: 'on-city' }" />
               <p v-if="departureError" class="text-xs text-red-500">{{ departureError }}</p>
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="off-city">到达城市</label>
-              <n-select
-                v-model:value="selectedOffCityId"
-                :options="arrivalCityOptions"
-                placeholder="请选择到达城市"
-                clearable
-                class="w-full"
-                :disabled="!selectedOnCityId || arrivalLoading"
-                :loading="arrivalLoading"
-                :input-props="{ id: 'off-city' }"
-              />
+              <n-select v-model:value="selectedOffCityId" :options="arrivalCityOptions" placeholder="请选择到达城市" clearable
+                class="w-full" :disabled="!selectedOnCityId || arrivalLoading" :loading="arrivalLoading"
+                :input-props="{ id: 'off-city' }" />
               <p v-if="arrivalError" class="text-xs text-red-500">{{ arrivalError }}</p>
             </div>
           </div>
@@ -45,43 +32,22 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="departure-date">出发日期</label>
-              <n-date-picker
-                v-model:value="departureDate"
-                type="date"
-                clearable
-                placeholder="请选择出发日期"
-                value-format="yyyy-MM-dd"
-                :input-props="{ id: 'departure-date' }"
-                class="w-full"
-              />
+              <n-date-picker v-model:value="departureDate" type="date" clearable placeholder="请选择出发日期"
+                value-format="yyyy-MM-dd" :input-props="{ id: 'departure-date' }" class="w-full" />
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="on-station">出发站点</label>
-              <n-select
-                v-model:value="selectedOnStationId"
-                :options="onStationOptions"
-                placeholder="请选择出发站点"
-                clearable
-                class="w-full"
-                :disabled="onStationsLoading || !flattenedOnStations.length"
-                :loading="onStationsLoading"
-                :input-props="{ id: 'on-station' }"
-              />
+              <n-select v-model:value="selectedOnStationId" :options="onStationOptions" placeholder="请选择出发站点" clearable
+                class="w-full" :disabled="onStationsLoading || !flattenedOnStations.length" :loading="onStationsLoading"
+                :input-props="{ id: 'on-station' }" />
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="off-station">到达站点</label>
-              <n-select
-                v-model:value="selectedOffStationId"
-                :options="offStationOptions"
-                placeholder="请选择到达站点"
-                clearable
-                class="w-full"
-                :disabled="offStationsLoading || !flattenedOffStations.length"
-                :loading="offStationsLoading"
-                :input-props="{ id: 'off-station' }"
-              />
+              <n-select v-model:value="selectedOffStationId" :options="offStationOptions" placeholder="请选择到达站点"
+                clearable class="w-full" :disabled="offStationsLoading || !flattenedOffStations.length"
+                :loading="offStationsLoading" :input-props="{ id: 'off-station' }" />
             </div>
           </div>
 
@@ -90,20 +56,16 @@
               <i class="fa fa-info-circle text-blue-500"></i>
               <span>当选择城市或日期后，站点列表将自动刷新。</span>
             </div>
-            <n-button
-              type="primary"
-              size="large"
-              :loading="runsLoading"
-              :disabled="runButtonDisabled"
-              @click="loadRuns"
-            >
+            <n-button type="primary" size="large" :loading="runsLoading" :disabled="runButtonDisabled"
+              @click="loadRuns">
               {{ runsLoading ? '查询中...' : '查询班次' }}
             </n-button>
           </div>
         </section>
         <section class="space-y-4">
           <div v-if="runsLoading" class="bg-white rounded-2xl border border-slate-200 px-6 py-10 text-center">
-            <div class="w-12 h-12 mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-12 h-12 mx-auto mb-4 border-4 border-blue-600 border-t-transparent rounded-full animate-spin">
+            </div>
             <p class="text-slate-600">正在获取班次与票价信息...</p>
           </div>
 
@@ -143,7 +105,8 @@
             </article>
           </div>
 
-          <div v-else-if="runsLoaded" class="bg-white rounded-2xl border border-slate-200 px-6 py-10 text-center text-slate-500">
+          <div v-else-if="runsLoaded"
+            class="bg-white rounded-2xl border border-slate-200 px-6 py-10 text-center text-slate-500">
             暂无可展示的班次，请调整站点或日期后重试。
           </div>
         </section>
