@@ -15,24 +15,29 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="on-city">出发城市</label>
-              <select id="on-city" v-model="selectedOnCityId" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">请选择出发城市</option>
-                <option v-for="city in departureCities" :key="city.id" :value="city.id">
-                  {{ city.name }}
-                </option>
-              </select>
+              <n-select
+                v-model:value="selectedOnCityId"
+                :options="departureCityOptions"
+                placeholder="请选择出发城市"
+                clearable
+                class="w-full"
+                :input-props="{ id: 'on-city' }"
+              />
               <p v-if="departureError" class="text-xs text-red-500">{{ departureError }}</p>
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="off-city">到达城市</label>
-              <select id="off-city" v-model="selectedOffCityId" :disabled="!selectedOnCityId || arrivalLoading"
-                class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400">
-                <option value="">请选择到达城市</option>
-                <option v-for="city in arrivalCities" :key="city.id" :value="city.id">
-                  {{ city.name }}
-                </option>
-              </select>
+              <n-select
+                v-model:value="selectedOffCityId"
+                :options="arrivalCityOptions"
+                placeholder="请选择到达城市"
+                clearable
+                class="w-full"
+                :disabled="!selectedOnCityId || arrivalLoading"
+                :loading="arrivalLoading"
+                :input-props="{ id: 'off-city' }"
+              />
               <p v-if="arrivalError" class="text-xs text-red-500">{{ arrivalError }}</p>
             </div>
           </div>
@@ -40,30 +45,43 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="departure-date">出发日期</label>
-              <input id="departure-date" type="date" v-model="departureDate"
-                class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <n-date-picker
+                v-model:value="departureDate"
+                type="date"
+                clearable
+                placeholder="请选择出发日期"
+                value-format="yyyy-MM-dd"
+                :input-props="{ id: 'departure-date' }"
+                class="w-full"
+              />
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="on-station">出发站点</label>
-              <select id="on-station" v-model="selectedOnStationId" :disabled="onStationsLoading || !flattenedOnStations.length"
-                class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400">
-                <option value="">请选择出发站点</option>
-                <option v-for="station in flattenedOnStations" :key="station.stationId" :value="station.stationId">
-                  {{ station.stationName }} · {{ station.areaName }}
-                </option>
-              </select>
+              <n-select
+                v-model:value="selectedOnStationId"
+                :options="onStationOptions"
+                placeholder="请选择出发站点"
+                clearable
+                class="w-full"
+                :disabled="onStationsLoading || !flattenedOnStations.length"
+                :loading="onStationsLoading"
+                :input-props="{ id: 'on-station' }"
+              />
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="off-station">到达站点</label>
-              <select id="off-station" v-model="selectedOffStationId" :disabled="offStationsLoading || !flattenedOffStations.length"
-                class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-400">
-                <option value="">请选择到达站点</option>
-                <option v-for="station in flattenedOffStations" :key="station.stationId" :value="station.stationId">
-                  {{ station.stationName }} · {{ station.areaName }}
-                </option>
-              </select>
+              <n-select
+                v-model:value="selectedOffStationId"
+                :options="offStationOptions"
+                placeholder="请选择到达站点"
+                clearable
+                class="w-full"
+                :disabled="offStationsLoading || !flattenedOffStations.length"
+                :loading="offStationsLoading"
+                :input-props="{ id: 'off-station' }"
+              />
             </div>
           </div>
 
@@ -72,14 +90,15 @@
               <i class="fa fa-info-circle text-blue-500"></i>
               <span>当选择城市或日期后，站点列表将自动刷新。</span>
             </div>
-            <button type="button" @click="loadRuns" :disabled="runButtonDisabled"
-              class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl disabled:bg-slate-300 disabled:text-slate-500">
-              <svg v-if="runsLoading" class="w-4 h-4 mr-2 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>{{ runsLoading ? '查询中...' : '查询班次' }}</span>
-            </button>
+            <n-button
+              type="primary"
+              size="large"
+              :loading="runsLoading"
+              :disabled="runButtonDisabled"
+              @click="loadRuns"
+            >
+              {{ runsLoading ? '查询中...' : '查询班次' }}
+            </n-button>
           </div>
         </section>
 
@@ -156,6 +175,34 @@ const arrivalCities = ref([])
 const flattenedOnStations = ref([])
 const flattenedOffStations = ref([])
 const seatInfoMap = ref({})
+
+const departureCityOptions = computed(() =>
+  departureCities.value.map((city) => ({
+    label: city.name,
+    value: city.id
+  }))
+)
+
+const arrivalCityOptions = computed(() =>
+  arrivalCities.value.map((city) => ({
+    label: city.name,
+    value: city.id
+  }))
+)
+
+const onStationOptions = computed(() =>
+  flattenedOnStations.value.map((station) => ({
+    label: station.areaName ? `${station.stationName} · ${station.areaName}` : station.stationName,
+    value: station.stationId
+  }))
+)
+
+const offStationOptions = computed(() =>
+  flattenedOffStations.value.map((station) => ({
+    label: station.areaName ? `${station.stationName} · ${station.areaName}` : station.stationName,
+    value: station.stationId
+  }))
+)
 
 const selectedOnCityId = ref('')
 const selectedOffCityId = ref('')
