@@ -98,7 +98,7 @@ function updateMarkers() {
         position,
         title: item.title
       }
-      
+
       // 如果有自定义图标，添加图标配置
       if (item.icon) {
         markerOptions.icon = {
@@ -108,7 +108,7 @@ function updateMarkers() {
           anchor: new window.google.maps.Point(16, 32) // 图标锚点
         }
       }
-      
+
       marker = new window.google.maps.Marker(markerOptions)
     }
     if (marker) markerInstances.push(marker)
@@ -209,6 +209,6 @@ onBeforeUnmount(() => {
 
 .gm-map {
   width: 100%;
-  height: 60vh;
+  height: 70vh;
 }
 </style>
