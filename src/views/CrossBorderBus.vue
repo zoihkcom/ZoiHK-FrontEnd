@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gradient-to-b from-slate-50 to-white">
     <Navbar />
     <div class="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-6xl mx-auto space-y-8">
+      <div class="container mx-auto space-y-8">
         <header class="text-center space-y-3">
           <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Cross-Border Bus</p>
           <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">跨境巴士查询</h1>

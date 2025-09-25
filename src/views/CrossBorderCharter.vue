@@ -2,195 +2,160 @@
   <div class="min-h-screen bg-slate-50">
     <Navbar />
     <main class="pt-20 pb-16">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <header class="text-center space-y-3">
+      <div class="px-4 sm:px-6 lg:px-8 space-y-8">
+        <div class="max-w-6xl mx-auto text-center space-y-3">
           <p class="text-sm font-medium text-blue-600 uppercase tracking-[0.3em]">Hong Kong Cross-Border Charter</p>
           <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">跨境包车服务</h1>
           <p class="text-sm text-slate-500">在地图上选择上车点与下车点，系统会自动保存坐标并生成 Google Maps 导航链接，便于与司机沟通行程。</p>
-        </header>
-        <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
-          <button
-            class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
-            :class="activeTarget === 'pickup' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
-            type="button"
-            @click="setActiveTarget('pickup')"
-          >
-            <i class="fa fa-map-marker text-sky-500"></i>
-            设置上车点
-          </button>
-          <button
-            class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
-            :class="activeTarget === 'dropoff' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
-            type="button"
-            @click="setActiveTarget('dropoff')"
-          >
-            <i class="fa fa-map-marker text-emerald-500"></i>
-            设置下车点
-          </button>
-          <span class="text-xs text-slate-500">当前操作：{{ activeLabel }}</span>
         </div>
+        <div class="container mx-auto space-y-6">
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button
+              class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
+              :class="activeTarget === 'pickup' ? 'border-sky-500 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
+              type="button" @click="setActiveTarget('pickup')">
+              <i class="fa fa-map-marker text-sky-500"></i>
+              设置上车点
+            </button>
+            <button
+              class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
+              :class="activeTarget === 'dropoff' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
+              type="button" @click="setActiveTarget('dropoff')">
+              <i class="fa fa-map-marker text-emerald-500"></i>
+              设置下车点
+            </button>
+            <span class="text-xs text-slate-500">当前操作：{{ activeLabel }}</span>
+          </div>
 
-        <div class="grid gap-6 lg:grid-cols-3">
-          <section class="lg:col-span-2 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm shadow-slate-100">
-            <GoogleMap
-              :center="mapCenter"
-              :zoom="12"
-              :markers="mapMarkers"
-              class="h-full"
-              @ready="onMapReady"
-              @error="onMapError"
-            />
-            <div class="flex flex-wrap items-center justify-between border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
-              <span>提示：点击地图可设置 {{ activeLabel }}，拖动地图寻找更合适的位置。</span>
-              <button
-                class="text-sky-600 hover:text-sky-700 font-medium"
-                type="button"
-                @click="resetPoints"
-              >
-                清除全部选点
-              </button>
-            </div>
-          </section>
+          <div class="grid gap-6 lg:grid-cols-3">
+            <section
+              class="lg:col-span-2 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm shadow-slate-100">
+              <GoogleMap :center="mapCenter" :zoom="12" :markers="mapMarkers" class="h-full" @ready="onMapReady"
+                @error="onMapError" />
+              <div
+                class="flex flex-wrap items-center justify-between border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
+                <span>提示：点击地图可设置 {{ activeLabel }}，拖动地图寻找更合适的位置。</span>
+                <button class="text-sky-600 hover:text-sky-700 font-medium" type="button" @click="resetPoints">
+                  清除全部选点
+                </button>
+              </div>
+            </section>
 
-          <aside class="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-            <section>
-              <header class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-lg font-semibold text-slate-800">上车点</h2>
-                  <p class="text-xs text-slate-500">输入关键词或点击地图即可设置</p>
-                </div>
-                <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-600">Pickup</span>
-              </header>
-              <div class="mt-4 space-y-3">
-                <div class="flex gap-2">
-                  <input
-                    v-model.trim="pickupQuery"
-                    type="text"
-                    placeholder="如：深圳湾口岸停车场"
-                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none"
-                    @keyup.enter="searchAddress('pickup')"
-                  />
-                  <button
-                    class="rounded-xl bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
-                    type="button"
-                    :disabled="loadingTarget === 'pickup'"
-                    @click="searchAddress('pickup')"
-                  >
-                    {{ loadingTarget === 'pickup' ? '搜索中' : '搜索' }}
-                  </button>
-                </div>
-                <p v-if="errors.pickup" class="text-xs text-rose-500">{{ errors.pickup }}</p>
-                <div v-if="pickupPoint" class="space-y-2 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm text-slate-700">
-                  <p class="font-medium text-slate-800">{{ pickupPoint.address }}</p>
-                  <p class="text-xs text-slate-500">坐标：{{ pickupPoint.position.lat.toFixed(6) }}, {{ pickupPoint.position.lng.toFixed(6) }}</p>
-                  <div class="flex flex-wrap gap-2 pt-1">
-                    <button
-                      class="rounded-full border border-sky-400 px-3 py-1 text-xs font-medium text-sky-600 hover:bg-sky-100"
-                      type="button"
-                      @click="focusPoint('pickup')"
-                    >
-                      地图定位
-                    </button>
-                    <a
-                      :href="mapsSearchLink(pickupPoint)"
-                      class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:border-slate-300"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      打开 Google 地图
-                    </a>
+            <aside class="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
+              <section>
+                <header class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-lg font-semibold text-slate-800">上车点</h2>
+                    <p class="text-xs text-slate-500">输入关键词或点击地图即可设置</p>
                   </div>
-                  <p class="text-xs text-slate-400">更新时间：{{ pickupPoint.updatedAt }}</p>
-                </div>
-                <div v-else class="rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-400">
-                  暂未选择上车点，先点击地图或输入地址搜索。
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <header class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-lg font-semibold text-slate-800">下车点</h2>
-                  <p class="text-xs text-slate-500">可输入目的地地址或者直接点选</p>
-                </div>
-                <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">Dropoff</span>
-              </header>
-              <div class="mt-4 space-y-3">
-                <div class="flex gap-2">
-                  <input
-                    v-model.trim="dropoffQuery"
-                    type="text"
-                    placeholder="如：香港国际机场 T1"
-                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none"
-                    @keyup.enter="searchAddress('dropoff')"
-                  />
-                  <button
-                    class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600"
-                    type="button"
-                    :disabled="loadingTarget === 'dropoff'"
-                    @click="searchAddress('dropoff')"
-                  >
-                    {{ loadingTarget === 'dropoff' ? '搜索中' : '搜索' }}
-                  </button>
-                </div>
-                <p v-if="errors.dropoff" class="text-xs text-rose-500">{{ errors.dropoff }}</p>
-                <div v-if="dropoffPoint" class="space-y-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-slate-700">
-                  <p class="font-medium text-slate-800">{{ dropoffPoint.address }}</p>
-                  <p class="text-xs text-slate-500">坐标：{{ dropoffPoint.position.lat.toFixed(6) }}, {{ dropoffPoint.position.lng.toFixed(6) }}</p>
-                  <div class="flex flex-wrap gap-2 pt-1">
+                  <span class="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-600">Pickup</span>
+                </header>
+                <div class="mt-4 space-y-3">
+                  <div class="flex gap-2">
+                    <input v-model.trim="pickupQuery" type="text" placeholder="如：深圳湾口岸停车场"
+                      class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none"
+                      @keyup.enter="searchAddress('pickup')" />
                     <button
-                      class="rounded-full border border-emerald-400 px-3 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-100"
-                      type="button"
-                      @click="focusPoint('dropoff')"
-                    >
-                      地图定位
-                    </button>
-                    <a
-                      :href="mapsSearchLink(dropoffPoint)"
-                      class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:border-slate-300"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      打开 Google 地图
-                    </a>
+                      class="rounded-xl bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600 whitespace-nowrap"
+                      type="button" :disabled="loadingTarget === 'pickup'" @click="searchAddress('pickup')">{{
+                        loadingTarget === 'pickup' ? '搜索中' : '搜索' }}</button>
                   </div>
-                  <p class="text-xs text-slate-400">更新时间：{{ dropoffPoint.updatedAt }}</p>
+                  <p v-if="errors.pickup" class="text-xs text-rose-500">{{ errors.pickup }}</p>
+                  <div v-if="pickupPoint"
+                    class="space-y-2 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm text-slate-700">
+                    <p class="font-medium text-slate-800">{{ pickupPoint.address }}</p>
+                    <p class="text-xs text-slate-500">坐标：{{ pickupPoint.position.lat.toFixed(6) }}, {{
+                      pickupPoint.position.lng.toFixed(6) }}</p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                      <button
+                        class="rounded-full border border-sky-400 px-3 py-1 text-xs font-medium text-sky-600 hover:bg-sky-100"
+                        type="button" @click="focusPoint('pickup')">
+                        地图定位
+                      </button>
+                      <a :href="mapsSearchLink(pickupPoint)"
+                        class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:border-slate-300"
+                        target="_blank" rel="noreferrer">
+                        打开 Google 地图
+                      </a>
+                    </div>
+                    <p class="text-xs text-slate-400">更新时间：{{ pickupPoint.updatedAt }}</p>
+                  </div>
+                  <div v-else class="rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-400">
+                    暂未选择上车点，先点击地图或输入地址搜索。
+                  </div>
                 </div>
-                <div v-else class="rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-400">
-                  暂未选择下车点，点击地图或输入地址即可完成设置。
-                </div>
-              </div>
-            </section>
+              </section>
 
-            <section class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <i class="fa fa-road text-sky-500"></i>
-                行程概览
-              </div>
-              <div v-if="pickupPoint && dropoffPoint" class="space-y-2 text-sm text-slate-600">
-                <p>预计直线距离约 {{ distanceText }}，实际车程以实时路况为准。</p>
-                <p>建议将以下信息发送给司机，以便提前规划路线：</p>
-                <ul class="space-y-1 text-xs text-slate-500">
-                  <li>上车：{{ pickupPoint.address }}</li>
-                  <li>下车：{{ dropoffPoint.address }}</li>
-                  <li>坐标：{{ pickupPoint.position.lat.toFixed(5) }}, {{ pickupPoint.position.lng.toFixed(5) }} → {{ dropoffPoint.position.lat.toFixed(5) }}, {{ dropoffPoint.position.lng.toFixed(5) }}</li>
-                </ul>
-                <a
-                  :href="directionLink"
-                  class="inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <i class="fa fa-external-link"></i>
-                  打开 Google Maps 导航
-                </a>
-              </div>
-              <div v-else class="text-xs text-slate-400">
-                完成上下车点设置后，这里会展示行程摘要与导航链接。
-              </div>
-            </section>
-          </aside>
+              <section>
+                <header class="flex items-center justify-between">
+                  <div>
+                    <h2 class="text-lg font-semibold text-slate-800">下车点</h2>
+                    <p class="text-xs text-slate-500">可输入目的地地址或者直接点选</p>
+                  </div>
+                  <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-600">Dropoff</span>
+                </header>
+                <div class="mt-4 space-y-3">
+                  <div class="flex gap-2">
+                    <input v-model.trim="dropoffQuery" type="text" placeholder="如：香港国际机场 T1"
+                      class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none"
+                      @keyup.enter="searchAddress('dropoff')" />
+                    <button
+                      class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 whitespace-nowrap"
+                      type="button" :disabled="loadingTarget === 'dropoff'" @click="searchAddress('dropoff')">{{
+                        loadingTarget === 'dropoff' ? '搜索中' : '搜索' }}</button>
+                  </div>
+                  <p v-if="errors.dropoff" class="text-xs text-rose-500">{{ errors.dropoff }}</p>
+                  <div v-if="dropoffPoint"
+                    class="space-y-2 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-slate-700">
+                    <p class="font-medium text-slate-800">{{ dropoffPoint.address }}</p>
+                    <p class="text-xs text-slate-500">坐标：{{ dropoffPoint.position.lat.toFixed(6) }}, {{
+                      dropoffPoint.position.lng.toFixed(6) }}</p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                      <button
+                        class="rounded-full border border-emerald-400 px-3 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-100"
+                        type="button" @click="focusPoint('dropoff')">
+                        地图定位
+                      </button>
+                      <a :href="mapsSearchLink(dropoffPoint)"
+                        class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 hover:border-slate-300"
+                        target="_blank" rel="noreferrer">
+                        打开 Google 地图
+                      </a>
+                    </div>
+                    <p class="text-xs text-slate-400">更新时间：{{ dropoffPoint.updatedAt }}</p>
+                  </div>
+                  <div v-else class="rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-400">
+                    暂未选择下车点，点击地图或输入地址即可完成设置。
+                  </div>
+                </div>
+              </section>
+
+              <section class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <i class="fa fa-road text-sky-500"></i>
+                  行程概览
+                </div>
+                <div v-if="pickupPoint && dropoffPoint" class="space-y-2 text-sm text-slate-600">
+                  <p>预计直线距离约 {{ distanceText }}，实际车程以实时路况为准。</p>
+                  <ul class="space-y-1 text-xs text-slate-500">
+                    <li>上车：{{ pickupPoint.address }}</li>
+                    <li>下车：{{ dropoffPoint.address }}</li>
+                    <li>坐标：{{ pickupPoint.position.lat.toFixed(5) }}, {{ pickupPoint.position.lng.toFixed(5) }} → {{
+                      dropoffPoint.position.lat.toFixed(5) }}, {{ dropoffPoint.position.lng.toFixed(5) }}</li>
+                  </ul>
+                  <a :href="directionLink"
+                    class="inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-600"
+                    target="_blank" rel="noreferrer">
+                    <i class="fa fa-external-link"></i>
+                    打开 Google Maps 导航
+                  </a>
+                </div>
+                <div v-else class="text-xs text-slate-400">
+                  完成上下车点设置后，这里会展示行程摘要与导航链接。
+                </div>
+              </section>
+            </aside>
+          </div>
         </div>
       </div>
     </main>
