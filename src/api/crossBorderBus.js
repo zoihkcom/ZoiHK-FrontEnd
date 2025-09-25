@@ -7,7 +7,7 @@ const DEFAULT_HEADERS = {
   language: "zh_CN",
   source: "MINI",
   xweb_xhr: "1",
-  token: "3bc007c8506947389b73ab1e291fd35e",
+  token: "f5323d9fefe0475591d708a3697d2c14",
   "Content-Type": "application/json",
   "Accept-Language": "zh-CN,zh;q=0.9",
 };
