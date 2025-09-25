@@ -132,6 +132,11 @@ const routes = [
     component: () => import("../views/CrossBorderBus.vue"),
   },
   {
+    path: "/cross-border-charter",
+    name: "CrossBorderCharter",
+    component: () => import("../views/CrossBorderCharter.vue"),
+  },
+  {
     path: "/bus",
     name: "Bus",
     component: () => import("../views/BusRoute.vue"),
