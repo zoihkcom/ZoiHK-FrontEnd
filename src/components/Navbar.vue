@@ -34,7 +34,7 @@
 
             <!-- Dropdown Menu -->
             <div v-show="cityTransitOpen"
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
+              class="absolute top-full left-0 mt-2 w-64 max-h-[80vh] overflow-y-auto overscroll-contain [scrollbar-width:none] bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001] [&::-webkit-scrollbar]:hidden">
               <div class="p-2">
                 <router-link to="/weather"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -236,7 +236,7 @@
 
             <!-- Dropdown Menu -->
             <div v-show="facilitiesOpen"
-              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
+              class="absolute top-full left-0 mt-2 w-64 max-h-[80vh] overflow-y-auto overscroll-contain [scrollbar-width:none] bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001] [&::-webkit-scrollbar]:hidden">
               <div class="p-2">
                 <router-link to="/wifi"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
