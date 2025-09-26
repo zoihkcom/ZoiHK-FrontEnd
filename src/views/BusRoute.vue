@@ -35,16 +35,12 @@
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                   <div class="flex-1 sm:flex-none sm:w-72">
-                    <input v-model="searchQuery" type="text" placeholder="搜索线路号 / 目的地 / 起点 / 任意站点"
-                      class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                    <n-input v-model:value="searchQuery" placeholder="搜索线路号 / 目的地 / 起点 / 任意站点" size="large"
+                      class="w-full" />
                   </div>
                   <div class="sm:w-56">
-                    <select v-model="companyFilter"
-                      class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
-                      <option value="all">全部公司</option>
-                      <option v-for="option in companyFilterOptions" :key="option.id" :value="option.id">{{ option.label
-                        }}</option>
-                    </select>
+                    <n-select v-model:value="companyFilter" :options="companyFilterOptions" size="large" class="w-full"
+                      placeholder="选择运营公司" />
                   </div>
                 </div>
               </div>
@@ -252,8 +248,8 @@
             <h2 class="text-xl font-semibold text-slate-900">该站点其他线路 ETA</h2>
             <div class="text-sm text-slate-500">
               <span>{{ otherRoutesModalStop?.nameZh || '未知站点' }}</span>
-              <span v-if="otherRoutesModalStop?.nameEn"
-                class="block text-xs text-slate-400 sm:inline sm:ml-2">{{ otherRoutesModalStop?.nameEn }}</span>
+              <span v-if="otherRoutesModalStop?.nameEn" class="block text-xs text-slate-400 sm:inline sm:ml-2">{{
+                otherRoutesModalStop?.nameEn }}</span>
             </div>
           </div>
           <button @click="closeOtherRoutesModal"
@@ -330,7 +326,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import { NModal } from 'naive-ui'
+import { NInput, NModal, NSelect } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import { fetchEtas } from 'hk-bus-eta'
@@ -949,7 +945,8 @@ const companyFilterOptions = computed(() => {
       }
     })
   })
-  return Array.from(map, ([id, label]) => ({ id, label }))
+  const options = Array.from(map, ([id, label]) => ({ label, value: id }))
+  return [{ label: '全部公司', value: 'all' }, ...options]
 })
 
 const filteredRoutes = computed(() => {
