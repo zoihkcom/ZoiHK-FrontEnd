@@ -9,12 +9,6 @@ const themeOverrides = {
     primaryColorHover: '#3b82f6',
     primaryColorPressed: '#1d4ed8',
     primaryColorSuppl: '#60a5fa'
-  },
-  Input: {
-    borderRadius: '10px'
-  },
-  Select: {
-    borderRadius: '10px'
   }
 }
 </script>
