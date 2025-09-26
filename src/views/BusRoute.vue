@@ -30,11 +30,11 @@
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <h2 class="text-2xl font-semibold text-slate-900">共 {{ totalRoutes }} 条路线</h2>
-                  <p class="text-sm text-slate-500 mt-1">数据来源：routeList.json 与 tramways_main_routes_sc.csv，支持按线路、站点目的地关键字检索</p>
+                  <p class="text-sm text-slate-500 mt-1">数据来源：routeList.json 与 tramways_main_routes_sc.csv，支持按线路、站点目的地以及任意站点名称检索</p>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                   <div class="flex-1 sm:flex-none sm:w-72">
-                    <input v-model="searchQuery" type="text" placeholder="搜索线路号 / 目的地 / 起点"
+                    <input v-model="searchQuery" type="text" placeholder="搜索线路号 / 目的地 / 起点 / 任意站点"
                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
                   </div>
                   <div class="sm:w-56">
@@ -681,6 +681,8 @@ const buildStopRoutesMap = (routeEntries) => {
   return result
 }
 
+
+
 const getOtherRoutesForStop = (stopId) => {
   if (!stopId) return []
   const entries = stopRoutesMap.value[stopId] || []
@@ -737,7 +739,9 @@ const filteredRoutes = computed(() => {
       return false
     }
     if (!keyword) return true
-    return [
+    
+    // 检查基本字段
+    const basicFieldsMatch = [
       item.route,
       item.orig.zh,
       item.orig.en,
@@ -747,6 +751,27 @@ const filteredRoutes = computed(() => {
     ]
       .filter(Boolean)
       .some((field) => field.toLowerCase().includes(keyword))
+    
+    if (basicFieldsMatch) return true
+    
+    // 检查站点名称（检查路线的站点列表）
+    const companies = item.co || []
+    for (const companyId of companies) {
+      const stopSequence = item.stops?.[companyId] || []
+      for (const stopId of stopSequence) {
+        const stopInfo = stopList.value[stopId]
+        if (!stopInfo) continue
+        
+        const stopNameZh = stopInfo.name?.zh?.toLowerCase()
+        const stopNameEn = stopInfo.name?.en?.toLowerCase()
+        
+        if ((stopNameZh && stopNameZh.includes(keyword)) || 
+            (stopNameEn && stopNameEn.includes(keyword))) {
+          return true
+        }
+      }
+    }
+    return false
   })
 })
 
