@@ -232,36 +232,71 @@
                     <i class="fa" :class="getFavoriteCategoryIcon(stop.id)"></i>
                     <span class="ml-1">{{ favoriteButtonLabel(stop.id) }}</span>
                   </button>
-                  <button @click="toggleOtherRoutes(stop)"
+                  <button @click="openOtherRoutesModal(stop)"
                     class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition-colors whitespace-nowrap">
                     <i class="fa fa-random mr-1"></i>
                     查看其他线路
                   </button>
                 </div>
-                <div v-if="activeOtherRoutesStop === stop.id" class="mt-2 w-full">
-                  <div v-if="getOtherRoutesForStop(stop.id).length"
-                    class="bg-white border border-slate-200 rounded-lg px-3 py-2 space-y-2">
-                    <div v-for="other in getOtherRoutesForStop(stop.id)"
-                      :key="`${stop.id}-${other.route}-${other.company}`"
-                      class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                      <span
-                        class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
-                        {{ other.route }}
-                      </span>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                        {{ mapCompany(other.company) }}
-                      </span>
-                      <span class="flex items-center gap-1 flex-1 min-w-[140px] text-slate-500">
-                        <i class="fa fa-long-arrow-right text-slate-400"></i>
-                        <span>{{ other.dest || '目的地待获取' }}</span>
-                      </span>
-                    </div>
-                  </div>
-                  <div v-else class="text-xs text-slate-400">暂无其它线路</div>
-                </div>
               </div>
             </li>
           </ol>
+        </div>
+      </div>
+    </n-modal>
+    <n-modal v-model:show="showOtherRoutesModal" :mask-closable="true" transform-origin="center"
+      :style="otherRoutesModalStyle">
+      <div class="bg-white rounded-xl p-6 max-h-[70vh] overflow-hidden flex flex-col">
+        <div class="flex items-start justify-between mb-4">
+          <div class="space-y-1">
+            <h2 class="text-xl font-semibold text-slate-900">该站点其他线路 ETA</h2>
+            <div class="text-sm text-slate-500">
+              <span>{{ otherRoutesModalStop?.nameZh || '未知站点' }}</span>
+              <span v-if="otherRoutesModalStop?.nameEn"
+                class="block text-xs text-slate-400 sm:inline sm:ml-2">{{ otherRoutesModalStop?.nameEn }}</span>
+            </div>
+          </div>
+          <button @click="closeOtherRoutesModal"
+            class="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+        </div>
+        <div class="mb-4 text-xs text-slate-400">
+          <span v-if="otherRoutesModalStop?.index">站序：{{ otherRoutesModalStop.index }}</span>
+          <span v-if="otherRoutesModalStop?.fare" class="ml-3">票价：HK${{ otherRoutesModalStop.fare }}</span>
+        </div>
+        <div class="flex-1 overflow-y-auto pr-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div v-if="otherRoutesLoading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-xl h-10 w-10 border-b-2 border-purple-500"></div>
+            <span class="ml-3 text-sm text-slate-500">正在获取其它线路的到站时间...</span>
+          </div>
+          <div v-else-if="!otherRoutesModalRoutes.length" class="py-10 text-center text-sm text-slate-500">
+            暂无其它线路或缺少站点数据
+          </div>
+          <div v-else class="space-y-3">
+            <div v-for="route in otherRoutesModalRoutes" :key="`${route.key}-${route.company}`"
+              class="bg-slate-50 rounded-xl p-4 space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <span
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-100 text-blue-600 font-semibold text-sm">
+                    {{ route.route }}
+                  </span>
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900">{{ route.destLabel || '目的地待获取' }}</p>
+                    <p class="text-xs text-slate-500">{{ route.companyLabel }}</p>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-2 sm:justify-end">
+                  <span v-for="(badge, idx) in getOtherRouteEtaBadges(route)" :key="idx"
+                    :class="['inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium', badge.className]">
+                    {{ badge.text }}
+                  </span>
+                </div>
+              </div>
+              <p v-if="getOtherRouteEtaRemark(route)" class="text-xs text-slate-400">
+                {{ getOtherRouteEtaRemark(route) }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </n-modal>
@@ -317,6 +352,10 @@ const COMPANY_MAP = {
   hktram: '香港电车 Hong Kong Tramways',
 }
 
+const mapCompany = (id) => {
+  return COMPANY_MAP[id] || id.toUpperCase()
+}
+
 const TRAM_COMPANY_ID = 'hktram'
 
 const loading = ref(false)
@@ -342,7 +381,11 @@ const showFavoriteMenu = ref(null)
 const favoriteMenuPosition = ref({ x: 0, y: 0 })
 const pendingFavoriteStop = ref(null)
 const stopRoutesMap = ref({})
-const activeOtherRoutesStop = ref('')
+const showOtherRoutesModal = ref(false)
+const otherRoutesModalStop = ref(null)
+const otherRoutesEtaState = reactive({})
+const otherRoutesLoading = ref(false)
+let otherRoutesEtaToken = 0
 
 const FERRY_COMPANY_CONFIG = {
   tsuiWah: {
@@ -705,20 +748,167 @@ const getOtherRoutesForStop = (stopId) => {
   return Array.from(unique.values())
 }
 
-const toggleOtherRoutes = (stop) => {
+const otherRoutesModalRoutes = computed(() => {
+  const stop = otherRoutesModalStop.value
+  if (!stop?.id) return []
+  const entries = getOtherRoutesForStop(stop.id)
+  return entries.map((entry) => {
+    const routeEntry = allRoutes.value.find((item) => item.key === entry.key)
+    if (!routeEntry) {
+      return {
+        ...entry,
+        routeEntry: null,
+        companyLabel: mapCompany(entry.company),
+        destLabel: entry.dest || '',
+        seq: -1,
+        etaKey: '',
+      }
+    }
+    const stopSequence = routeEntry.stops?.[entry.company] || []
+    const seq = stopSequence.indexOf(stop.id)
+    return {
+      ...entry,
+      routeEntry,
+      companyLabel: mapCompany(entry.company),
+      destLabel: entry.dest || routeEntry.dest?.zh || routeEntry.dest?.en || '',
+      seq,
+      etaKey: seq >= 0 ? getOtherRouteEtaKey(routeEntry.key, entry.company, stop.id) : '',
+    }
+  })
+})
+
+const resetOtherRoutesModalState = () => {
+  otherRoutesModalStop.value = null
+  otherRoutesEtaToken += 1
+  otherRoutesLoading.value = false
+  Object.keys(otherRoutesEtaState).forEach((key) => {
+    delete otherRoutesEtaState[key]
+  })
+}
+
+const closeOtherRoutesModal = () => {
+  showOtherRoutesModal.value = false
+}
+
+const getOtherRouteEtaBadges = (entry) => {
+  if (!entry?.etaKey) {
+    return [
+      {
+        text: '暂无数据',
+        className: 'bg-slate-200 text-slate-500',
+      },
+    ]
+  }
+  const etaRecords = otherRoutesEtaState[entry.etaKey]
+  if (etaRecords === undefined || etaRecords === null) {
+    return [
+      {
+        text: '载入中',
+        className: 'bg-slate-200 text-slate-500',
+      },
+    ]
+  }
+  if (Array.isArray(etaRecords) && etaRecords.length) {
+    return etaRecords.slice(0, 2).map((etaItem) => buildEtaBadge(etaItem))
+  }
+  return [
+    {
+      text: '暂无班次',
+      className: 'bg-slate-200 text-slate-500',
+    },
+  ]
+}
+
+const getOtherRouteEtaRemark = (entry) => {
+  if (!entry?.etaKey) return ''
+  const etaRecords = otherRoutesEtaState[entry.etaKey]
+  if (Array.isArray(etaRecords) && etaRecords.length) {
+    return etaRecords[0]?.remark?.zh || etaRecords[0]?.remark?.en || ''
+  }
+  return ''
+}
+
+const openOtherRoutesModal = (stop) => {
   if (!stop?.id) return
   closeFavoriteMenu()
-  if (activeOtherRoutesStop.value === stop.id) {
-    activeOtherRoutesStop.value = ''
+  otherRoutesModalStop.value = stop
+  showOtherRoutesModal.value = true
+  loadOtherRoutesEtas()
+}
+
+const loadOtherRoutesEtas = async () => {
+  const stop = otherRoutesModalStop.value
+  if (!stop?.id) {
+    otherRoutesLoading.value = false
     return
   }
-  activeOtherRoutesStop.value = stop.id
+
+  const token = ++otherRoutesEtaToken
+
+  Object.keys(otherRoutesEtaState).forEach((key) => {
+    delete otherRoutesEtaState[key]
+  })
+
+  const targets = otherRoutesModalRoutes.value.filter((entry) => entry.routeEntry && entry.etaKey && entry.seq >= 0)
+  if (!targets.length) {
+    if (otherRoutesEtaToken === token) {
+      otherRoutesLoading.value = false
+    }
+    return
+  }
+
+  if (otherRoutesEtaToken === token) {
+    otherRoutesLoading.value = true
+  }
+  try {
+    await Promise.all(
+      targets.map(async (entry) => {
+        const etaKey = entry.etaKey
+        if (otherRoutesEtaToken !== token) {
+          return
+        }
+        otherRoutesEtaState[etaKey] = null
+        try {
+          const etas = await fetchEtas({
+            ...entry.routeEntry,
+            co: [entry.company],
+            stops: entry.routeEntry.stops,
+            bound: entry.routeEntry.bound || {},
+            stopList: stopList.value,
+            holidays: holidays.value,
+            serviceDayMap: serviceDayMap.value,
+            language: 'zh',
+            seq: entry.seq,
+          })
+          if (otherRoutesEtaToken === token) {
+            otherRoutesEtaState[etaKey] = etas
+          }
+        } catch (err) {
+          console.error('获取其他线路 ETA 失败', err)
+          if (otherRoutesEtaToken === token) {
+            otherRoutesEtaState[etaKey] = []
+          }
+        }
+      })
+    )
+  } finally {
+    if (otherRoutesEtaToken === token) {
+      otherRoutesLoading.value = false
+    }
+  }
 }
 
 const modalStyle = reactive({
   width: '720px',
   maxWidth: '90vw',
 })
+
+const otherRoutesModalStyle = reactive({
+  width: '640px',
+  maxWidth: '90vw',
+})
+
+const getOtherRouteEtaKey = (routeKey, companyId, stopId) => `${routeKey}__${companyId}__${stopId}`
 
 const buildRouteDisplayKey = (route) => {
   const routeId = route.route || route.key || ''
@@ -935,10 +1125,6 @@ const formatFarePreview = (fares) => {
   return `HK$${maxFare}`
 }
 
-const mapCompany = (id) => {
-  return COMPANY_MAP[id] || id.toUpperCase()
-}
-
 const loadMore = () => {
   displayCount.value += 100
 }
@@ -947,7 +1133,7 @@ const openRouteDetail = (item) => {
   selectedRouteKey.value = item.key
   const firstCompany = item.co?.[0] || 'kmb'
   activeCompany.value = firstCompany
-  activeOtherRoutesStop.value = ''
+  closeOtherRoutesModal()
   closeFavoriteMenu()
   showStops.value = true
   nextTick(() => {
@@ -957,13 +1143,13 @@ const openRouteDetail = (item) => {
 
 const closeModal = () => {
   showStops.value = false
-  activeOtherRoutesStop.value = ''
+  closeOtherRoutesModal()
   closeFavoriteMenu()
 }
 
 const setActiveCompany = (companyId) => {
   activeCompany.value = companyId
-  activeOtherRoutesStop.value = ''
+  closeOtherRoutesModal()
   nextTick(() => {
     loadEtasForStops()
   })
@@ -975,7 +1161,7 @@ const toggleDirection = () => {
   const currentCompany = activeCompany.value
   const companies = reverseRoute.value.co || []
   activeCompany.value = companies.includes(currentCompany) ? currentCompany : companies[0] || ''
-  activeOtherRoutesStop.value = ''
+  closeOtherRoutesModal()
   nextTick(() => {
     loadEtasForStops()
   })
@@ -1055,8 +1241,14 @@ onMounted(() => {
 
 watch(showStops, (visible) => {
   if (!visible) {
-    activeOtherRoutesStop.value = ''
+    closeOtherRoutesModal()
     closeFavoriteMenu()
+  }
+})
+
+watch(showOtherRoutesModal, (visible) => {
+  if (!visible) {
+    resetOtherRoutesModalState()
   }
 })
 </script>
