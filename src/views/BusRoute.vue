@@ -878,8 +878,8 @@ const stopDetails = computed(() => {
 
 const formatFarePreview = (fares) => {
   if (!fares || !fares.length) return '暂无票价'
-  const value = fares[fares.length - 1]
-  return `HK$${value}`
+  const maxFare = Math.max(...fares)
+  return `HK$${maxFare}`
 }
 
 const mapCompany = (id) => {
