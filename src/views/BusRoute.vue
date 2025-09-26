@@ -375,6 +375,7 @@ const activeCompany = ref('')
 const holidays = ref([])
 const serviceDayMap = ref({})
 const etaState = reactive({})
+const MAX_ETA_BADGES = 3
 
 const { services: ferryServices } = useFerryServices()
 
@@ -812,7 +813,7 @@ const getOtherRouteEtaBadges = (entry) => {
     ]
   }
   if (Array.isArray(etaRecords) && etaRecords.length) {
-    return etaRecords.slice(0, 2).map((etaItem) => buildEtaBadge(etaItem))
+    return etaRecords.slice(0, MAX_ETA_BADGES).map((etaItem) => buildEtaBadge(etaItem))
   }
   return [
     {
@@ -1097,7 +1098,7 @@ const stopDetails = computed(() => {
         },
       ]
     } else if (Array.isArray(etaRecords) && etaRecords.length) {
-      etaBadges = etaRecords.slice(0, 2).map((etaItem) => buildEtaBadge(etaItem))
+      etaBadges = etaRecords.slice(0, MAX_ETA_BADGES).map((etaItem) => buildEtaBadge(etaItem))
       etaRemark = etaRecords[0]?.remark?.zh || etaRecords[0]?.remark?.en || ''
     } else {
       etaBadges = [
