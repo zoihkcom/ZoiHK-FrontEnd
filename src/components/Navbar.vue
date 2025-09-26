@@ -18,72 +18,30 @@
               <span class="text-xs text-gray-500">Home</span>
             </div>
           </router-link>
-          <!-- City & Transit Dropdown -->
+
+          <!-- Travel Tickets Dropdown -->
           <div class="relative">
-            <button @click="toggleDropdown(cityTransitOpen ? '' : 'cityTransit')"
+            <button @click="toggleDropdown(travelTicketsOpen ? '' : 'travelTickets')"
               class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
-                <span>交通出行</span>
-                <span class="text-xs text-gray-500">Transport</span>
+                <span>出行购票</span>
+                <span class="text-xs text-gray-500">Buy & Book</span>
               </div>
-              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': cityTransitOpen }" fill="none"
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': travelTicketsOpen }" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
 
-            <!-- Dropdown Menu -->
-            <div v-show="cityTransitOpen"
-              class="absolute top-full left-0 mt-2 w-64 max-h-[80vh] overflow-y-auto overscroll-contain [scrollbar-width:none] bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001] [&::-webkit-scrollbar]:hidden">
+            <div v-show="travelTicketsOpen"
+              class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
-                <router-link to="/weather"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-cloud w-4 text-blue-500"></i>
-                  <div>
-                    <div class="font-medium">天气与预警</div>
-                    <div class="text-xs text-gray-500">HKO Open Data</div>
-                  </div>
-                </router-link>
-
-                <router-link to="/air-quality"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-leaf w-4 text-green-500"></i>
-                  <div>
-                    <div class="font-medium">空气质量</div>
-                    <div class="text-xs text-gray-500">AQHI</div>
-                  </div>
-                </router-link>
-
-                <router-link to="/immigration"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-plane w-4 text-purple-500"></i>
-                  <div>
-                    <div class="font-medium">口岸等候</div>
-                    <div class="text-xs text-gray-500">ImmD</div>
-                  </div>
-                </router-link>
-
-                <div class="border-t border-gray-100 my-2"></div>
-
-                <div class="px-3 py-1">
-                  <div class="text-xs font-medium text-gray-500 mb-2">导航规划</div>
-                </div>
-
-                <router-link to="/route-planner"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-location-arrow w-4 text-green-500"></i>
-                  <div>
-                    <div class="font-medium">路线规划</div>
-                    <div class="text-xs text-gray-500">高德地图导航</div>
-                  </div>
-                </router-link>
-
                 <router-link to="/cross-border-bus"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-globe w-4 text-blue-500"></i>
                   <div>
                     <div class="font-medium">跨境巴士</div>
-                    <div class="text-xs text-gray-500">Cross-border Coach</div>
+                    <div class="text-xs text-gray-500">深圳 / 广州 / 澳门</div>
                   </div>
                 </router-link>
 
@@ -92,12 +50,58 @@
                   <i class="fa fa-car w-4 text-emerald-500"></i>
                   <div>
                     <div class="font-medium">跨境包车</div>
-                    <div class="text-xs text-gray-500">Charter Service</div>
+                    <div class="text-xs text-gray-500">一站式预约服务</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/uber"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-taxi w-4 text-yellow-500"></i>
+                  <div>
+                    <div class="font-medium">Uber 打车</div>
+                    <div class="text-xs text-gray-500">Uber & 出租车比价</div>
+                  </div>
+                </router-link>
+
+                <router-link to="/route-planner"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-location-arrow w-4 text-green-500"></i>
+                  <div>
+                    <div class="font-medium">路径规划</div>
+                    <div class="text-xs text-gray-500">多模式导航建议</div>
+                  </div>
+                </router-link>
+              </div>
+            </div>
+          </div>
+
+          <!-- Travel Status Dropdown -->
+          <div class="relative">
+            <button @click="toggleDropdown(travelStatusOpen ? '' : 'travelStatus')"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+              <div class="flex flex-col items-center">
+                <span>出行状态</span>
+                <span class="text-xs text-gray-500">Live</span>
+              </div>
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': travelStatusOpen }" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <div v-show="travelStatusOpen"
+              class="absolute top-full left-0 mt-2 w-64 max-h-[80vh] overflow-y-auto overscroll-contain [scrollbar-width:none] bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001] [&::-webkit-scrollbar]:hidden">
+              <div class="p-2">
+                <router-link to="/weather"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-cloud w-4 text-blue-500"></i>
+                  <div>
+                    <div class="font-medium">天气与预警</div>
+                    <div class="text-xs text-gray-500">HKO 实时天气</div>
                   </div>
                 </router-link>
 
                 <div class="border-t border-gray-100 my-2"></div>
-
                 <div class="px-3 py-1">
                   <div class="text-xs font-medium text-gray-500 mb-2">公共交通</div>
                 </div>
@@ -107,7 +111,7 @@
                   <i class="fa fa-bus w-4 text-indigo-500"></i>
                   <div>
                     <div class="font-medium">公共交通</div>
-                    <div class="text-xs text-gray-500">路线与ETA</div>
+                    <div class="text-xs text-gray-500">路线与 ETA</div>
                   </div>
                 </router-link>
 
@@ -115,44 +119,17 @@
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-subway w-4 text-red-500"></i>
                   <div>
-                    <div class="font-medium">MTR地铁</div>
+                    <div class="font-medium">MTR 地铁</div>
                     <div class="text-xs text-gray-500">实时到站</div>
                   </div>
                 </router-link>
-
-                <!-- <router-link to="/bus-routes"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-bus w-4 text-blue-500"></i>
-                  <div>
-                    <div class="font-medium">九龙巴士 KMB</div>
-                    <div class="text-xs text-gray-500">路线与ETA</div>
-                  </div>
-                </router-link>
-
-                <router-link to="/citybus-routes"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-bus w-4 text-orange-500"></i>
-                  <div>
-                    <div class="font-medium">城巴 Citybus</div>
-                    <div class="text-xs text-gray-500">路线与ETA</div>
-                  </div>
-                </router-link>
-
-                <router-link to="/minibus-routes"
-                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-bus w-4 text-green-600"></i>
-                  <div>
-                    <div class="font-medium">专线小巴 Minibus</div>
-                    <div class="text-xs text-gray-500">路线与站点</div>
-                  </div>
-                </router-link> -->
 
                 <router-link to="/cctv"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-video-camera w-4 text-gray-500"></i>
                   <div>
-                    <div class="font-medium">交通CCTV</div>
-                    <div class="text-xs text-gray-500">实时监控</div>
+                    <div class="font-medium">交通 CCTV</div>
+                    <div class="text-xs text-gray-500">道路实时画面</div>
                   </div>
                 </router-link>
 
@@ -161,33 +138,36 @@
                   <i class="fa fa-bullhorn w-4 text-rose-500"></i>
                   <div>
                     <div class="font-medium">交通通告</div>
-                    <div class="text-xs text-gray-500">禁区 / 限速 / 封路</div>
+                    <div class="text-xs text-gray-500">封路 / 限速 / 管制</div>
                   </div>
                 </router-link>
 
                 <div class="border-t border-gray-100 my-2"></div>
+                <div class="px-3 py-1">
+                  <div class="text-xs font-medium text-gray-500 mb-2">航空与出入境</div>
+                </div>
 
                 <router-link to="/flight"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-plane w-4 text-indigo-500"></i>
                   <div>
                     <div class="font-medium">航班信息</div>
-                    <div class="text-xs text-gray-500">到港离港查询</div>
+                    <div class="text-xs text-gray-500">到港离港动态</div>
                   </div>
                 </router-link>
 
-                <router-link to="/uber"
+                <router-link to="/immigration"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <i class="fa fa-car w-4 text-yellow-500"></i>
+                  <i class="fa fa-plane w-4 text-purple-500"></i>
                   <div>
-                    <div class="font-medium">打车服务</div>
-                    <div class="text-xs text-gray-500">Uber & 出租车</div>
+                    <div class="font-medium">口岸等候</div>
+                    <div class="text-xs text-gray-500">出入境实时排队</div>
                   </div>
                 </router-link>
 
                 <div class="border-t border-gray-100 my-2"></div>
                 <div class="px-3 py-1">
-                  <div class="text-xs font-medium text-gray-500 mb-2">停车服务</div>
+                  <div class="text-xs font-medium text-gray-500 mb-2">道路与停车</div>
                 </div>
 
                 <router-link to="/carparks"
@@ -195,7 +175,7 @@
                   <i class="fa fa-car w-4 text-purple-500"></i>
                   <div>
                     <div class="font-medium">停车场信息</div>
-                    <div class="text-xs text-gray-500">车位与收费</div>
+                    <div class="text-xs text-gray-500">剩余车位与收费</div>
                   </div>
                 </router-link>
 
@@ -204,7 +184,7 @@
                   <i class="fa fa-clock-o w-4 text-amber-500"></i>
                   <div>
                     <div class="font-medium">咪錶停车位</div>
-                    <div class="text-xs text-gray-500">街边计时停车</div>
+                    <div class="text-xs text-gray-500">街边计时泊位</div>
                   </div>
                 </router-link>
 
@@ -220,30 +200,38 @@
             </div>
           </div>
 
-          <!-- Facilities & Nearby Dropdown -->
+          <!-- City Services Dropdown -->
           <div class="relative">
-            <button @click="toggleDropdown(facilitiesOpen ? '' : 'facilities')"
+            <button @click="toggleDropdown(cityServicesOpen ? '' : 'cityServices')"
               class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
-                <span>城市生活</span>
-                <span class="text-xs text-gray-500">City Life</span>
+                <span>城市服务</span>
+                <span class="text-xs text-gray-500">Essentials</span>
               </div>
-              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': facilitiesOpen }" fill="none"
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': cityServicesOpen }" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
 
-            <!-- Dropdown Menu -->
-            <div v-show="facilitiesOpen"
+            <div v-show="cityServicesOpen"
               class="absolute top-full left-0 mt-2 w-64 max-h-[80vh] overflow-y-auto overscroll-contain [scrollbar-width:none] bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001] [&::-webkit-scrollbar]:hidden">
               <div class="p-2">
+                <router-link to="/air-quality"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-leaf w-4 text-green-500"></i>
+                  <div>
+                    <div class="font-medium">空气质量</div>
+                    <div class="text-xs text-gray-500">AQHI 指数</div>
+                  </div>
+                </router-link>
+
                 <router-link to="/wifi"
                   class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                   <i class="fa fa-wifi w-4 text-blue-500"></i>
                   <div>
-                    <div class="font-medium">WiFi热点</div>
-                    <div class="text-xs text-gray-500">免费WiFi位置</div>
+                    <div class="font-medium">WiFi 热点</div>
+                    <div class="text-xs text-gray-500">免费 WiFi 位置</div>
                   </div>
                 </router-link>
 
@@ -288,7 +276,7 @@
                   <i class="fa fa-graduation-cap w-4 text-green-500"></i>
                   <div>
                     <div class="font-medium">学校信息</div>
-                    <div class="text-xs text-gray-500">学校位置与详情</div>
+                    <div class="text-xs text-gray-500">学段与特色</div>
                   </div>
                 </router-link>
 
@@ -306,7 +294,7 @@
                   <i class="fa fa-map-marker w-4 text-orange-500"></i>
                   <div>
                     <div class="font-medium">环境卫生设施</div>
-                    <div class="text-xs text-gray-500">公厕、市场等</div>
+                    <div class="text-xs text-gray-500">公厕 / 市场 / 骑楼</div>
                   </div>
                 </router-link>
 
@@ -333,7 +321,7 @@
                   <i class="fa fa-life-ring w-4 text-sky-500"></i>
                   <div>
                     <div class="font-medium">泳池设施</div>
-                    <div class="text-xs text-gray-500">Swimming Pools</div>
+                    <div class="text-xs text-gray-500">LCSD 场馆</div>
                   </div>
                 </router-link>
 
@@ -351,7 +339,18 @@
                   <i class="fa fa-ban w-4 text-red-600"></i>
                   <div>
                     <div class="font-medium">禁烟区范围</div>
-                    <div class="text-xs text-gray-500">No Smoking Areas</div>
+                    <div class="text-xs text-gray-500">指定吸烟区查询</div>
+                  </div>
+                </router-link>
+
+                <div class="border-t border-gray-100 my-2"></div>
+
+                <router-link to="/store"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-shopping-bag w-4 text-slate-600"></i>
+                  <div>
+                    <div class="font-medium">在港商城</div>
+                    <div class="text-xs text-gray-500">精选旅居服务</div>
                   </div>
                 </router-link>
               </div>
@@ -364,7 +363,7 @@
               class="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
               <div class="flex flex-col items-center">
                 <span>活动票务</span>
-                <span class="text-xs text-gray-500">Events Tickets</span>
+                <span class="text-xs text-gray-500">Events</span>
               </div>
               <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': eventsOpen }" fill="none"
                 stroke="currentColor" viewBox="0 0 24 24">
@@ -372,7 +371,6 @@
               </svg>
             </button>
 
-            <!-- Dropdown Menu -->
             <div v-show="eventsOpen"
               class="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200 z-[1001]">
               <div class="p-2">
@@ -405,12 +403,6 @@
             </div>
           </div>
 
-          <router-link to="/store" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
-            <div class="flex flex-col items-center">
-              <span>在港商城</span>
-              <span class="text-xs text-gray-500">HK Store</span>
-            </div>
-          </router-link>
           <router-link to="/datahub" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
             <div class="flex flex-col items-center">
               <span>数据源</span>
@@ -495,31 +487,39 @@
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
           首页
         </router-link>
-        <!-- Mobile City & Transit Section -->
+        <!-- Mobile Travel Tickets Section -->
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2">
-            <div class="text-sm font-semibold text-gray-900 mb-2">交通出行 Transport</div>
+            <div class="text-sm font-semibold text-gray-900 mb-2">出行购票 Buy & Book</div>
+          </div>
+
+          <router-link to="/cross-border-bus" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-globe w-4 text-blue-500 mr-2"></i>跨境巴士
+          </router-link>
+          <router-link to="/cross-border-charter" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-car w-4 text-emerald-500 mr-2"></i>跨境包车
+          </router-link>
+          <router-link to="/uber" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-taxi w-4 text-yellow-500 mr-2"></i>Uber 打车
+          </router-link>
+          <router-link to="/route-planner" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-location-arrow w-4 text-green-500 mr-2"></i>路径规划
+          </router-link>
+        </div>
+
+        <!-- Mobile Travel Status Section -->
+        <div class="border-t border-gray-100 pt-2 mt-2">
+          <div class="px-3 py-2">
+            <div class="text-sm font-semibold text-gray-900 mb-2">出行状态 Live</div>
           </div>
 
           <router-link to="/weather" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-cloud w-4 text-blue-500 mr-2"></i>天气与预警
-          </router-link>
-          <router-link to="/air-quality" @click="isOpen = false"
-            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-leaf w-4 text-green-500 mr-2"></i>空气质量
-          </router-link>
-          <router-link to="/immigration" @click="isOpen = false"
-            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-plane w-4 text-purple-500 mr-2"></i>口岸等候
-          </router-link>
-
-          <div class="px-6 py-1 mt-2">
-            <div class="text-xs font-medium text-gray-500">导航规划</div>
-          </div>
-          <router-link to="/route-planner" @click="isOpen = false"
-            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-location-arrow w-4 text-green-500 mr-2"></i>路线规划
           </router-link>
 
           <div class="px-6 py-1 mt-2">
@@ -529,17 +529,9 @@
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-exchange w-4 text-indigo-500 mr-2"></i>公交路线总览
           </router-link>
-          <router-link to="/cross-border-bus" @click="isOpen = false"
-            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-globe w-4 text-blue-500 mr-2"></i>跨境巴士
-          </router-link>
-          <router-link to="/cross-border-charter" @click="isOpen = false"
-            class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-car w-4 text-emerald-500 mr-2"></i>跨境包车
-          </router-link>
           <router-link to="/subway" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-subway w-4 text-red-500 mr-2"></i>MTR地铁
+            <i class="fa fa-subway w-4 text-red-500 mr-2"></i>MTR 地铁
           </router-link>
           <router-link to="/bus-routes" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
@@ -553,9 +545,13 @@
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-bus w-4 text-green-600 mr-2"></i>专线小巴 Minibus
           </router-link>
+
+          <div class="px-6 py-1 mt-2">
+            <div class="text-xs font-medium text-gray-500">道路监测</div>
+          </div>
           <router-link to="/cctv" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-video-camera w-4 text-gray-500 mr-2"></i>交通CCTV
+            <i class="fa fa-video-camera w-4 text-gray-500 mr-2"></i>交通 CCTV
           </router-link>
           <router-link to="/traffic-notices" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
@@ -563,19 +559,20 @@
           </router-link>
 
           <div class="px-6 py-1 mt-2">
-            <div class="text-xs font-medium text-gray-500">航空出行</div>
+            <div class="text-xs font-medium text-gray-500">航空与出入境</div>
           </div>
           <router-link to="/flight" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-plane w-4 text-indigo-500 mr-2"></i>航班信息
           </router-link>
-          <router-link to="/uber" @click="isOpen = false"
+
+          <router-link to="/immigration" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-car w-4 text-yellow-500 mr-2"></i>打车服务
+            <i class="fa fa-plane w-4 text-purple-500 mr-2"></i>口岸等候
           </router-link>
 
           <div class="px-6 py-1 mt-2">
-            <div class="text-xs font-medium text-gray-500">停车服务</div>
+            <div class="text-xs font-medium text-gray-500">道路与停车</div>
           </div>
           <router-link to="/carparks" @click="isOpen = false"
             class="block px-8 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
@@ -591,15 +588,19 @@
           </router-link>
         </div>
 
-        <!-- Mobile Facilities & Nearby Section -->
+        <!-- Mobile City Services Section -->
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2">
-            <div class="text-sm font-semibold text-gray-900 mb-2">城市生活 City Life</div>
+            <div class="text-sm font-semibold text-gray-900 mb-2">城市服务 Essentials</div>
           </div>
 
+          <router-link to="/air-quality" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-leaf w-4 text-green-500 mr-2"></i>空气质量
+          </router-link>
           <router-link to="/wifi" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-wifi w-4 text-blue-500 mr-2"></i>WiFi热点
+            <i class="fa fa-wifi w-4 text-blue-500 mr-2"></i>WiFi 热点
           </router-link>
           <router-link to="/bank-branches" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
@@ -621,13 +622,13 @@
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-graduation-cap w-4 text-green-500 mr-2"></i>学校信息
           </router-link>
+          <router-link to="/heritage/monuments" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-university w-4 text-rose-500 mr-2"></i>法定古迹
+          </router-link>
           <router-link to="/fehd" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-map-marker w-4 text-orange-500 mr-2"></i>环境卫生设施
-          </router-link>
-          <router-link to="/heritage/monuments" @click="isOpen = false"
-            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-            <i class="fa fa-university w-4 text-rose-500 mr-2"></i>法定古蹟
           </router-link>
           <router-link to="/hospital" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
@@ -649,12 +650,16 @@
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-ban w-4 text-red-600 mr-2"></i>禁烟区范围
           </router-link>
+          <router-link to="/store" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-shopping-bag w-4 text-slate-600 mr-2"></i>在港商城
+          </router-link>
         </div>
 
         <!-- Mobile Events & Tickets Section -->
         <div class="border-t border-gray-100 pt-2 mt-2">
           <div class="px-3 py-2">
-            <div class="text-sm font-semibold text-gray-900 mb-2">活动票务 Events Tickets</div>
+            <div class="text-sm font-semibold text-gray-900 mb-2">活动票务 Events</div>
           </div>
 
           <router-link to="/tickets" @click="isOpen = false"
@@ -670,11 +675,6 @@
             <i class="fa fa-calendar-check-o w-4 text-red-500 mr-2"></i>公共假期
           </router-link>
         </div>
-
-        <router-link to="/store" @click="isOpen = false"
-          class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
-          在港商城
-        </router-link>
         <router-link to="/datahub" @click="isOpen = false"
           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md font-medium transition-colors">
           数据源
@@ -725,25 +725,30 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const isOpen = ref(false)
-const cityTransitOpen = ref(false)
-const facilitiesOpen = ref(false)
+const travelTicketsOpen = ref(false)
+const travelStatusOpen = ref(false)
+const cityServicesOpen = ref(false)
 const eventsOpen = ref(false)
 const languageOpen = ref(false)
 
 const toggleDropdown = (dropdownName) => {
   // 关闭所有下拉菜单
-  cityTransitOpen.value = false
-  facilitiesOpen.value = false
+  travelTicketsOpen.value = false
+  travelStatusOpen.value = false
+  cityServicesOpen.value = false
   eventsOpen.value = false
   languageOpen.value = false
 
   // 打开指定的下拉菜单
   switch (dropdownName) {
-    case 'cityTransit':
-      cityTransitOpen.value = true
+    case 'travelTickets':
+      travelTicketsOpen.value = true
       break
-    case 'facilities':
-      facilitiesOpen.value = true
+    case 'travelStatus':
+      travelStatusOpen.value = true
+      break
+    case 'cityServices':
+      cityServicesOpen.value = true
       break
     case 'events':
       eventsOpen.value = true
@@ -755,8 +760,9 @@ const toggleDropdown = (dropdownName) => {
 }
 
 const closeAllDropdowns = () => {
-  cityTransitOpen.value = false
-  facilitiesOpen.value = false
+  travelTicketsOpen.value = false
+  travelStatusOpen.value = false
+  cityServicesOpen.value = false
   eventsOpen.value = false
   languageOpen.value = false
 }
