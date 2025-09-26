@@ -22,5 +22,3 @@ const themeOverrides = {
   </NConfigProvider>
 
 </template>
-
-<style scoped></style>
