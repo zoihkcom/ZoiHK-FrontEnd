@@ -30,8 +30,7 @@
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <h2 class="text-2xl font-semibold text-slate-900">共 {{ totalRoutes }} 条路线</h2>
-                  <p class="text-sm text-slate-500 mt-1">数据来源：routeList.json 与
-                    tramways_main_routes_sc.csv，支持按线路、站点目的地以及任意站点名称检索</p>
+                  <p class="text-sm text-slate-500 mt-1">数据来源：运输署 Transport Department</p>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                   <div class="flex-1 sm:flex-none sm:w-72">
