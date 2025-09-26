@@ -30,7 +30,8 @@
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <h2 class="text-2xl font-semibold text-slate-900">共 {{ totalRoutes }} 条路线</h2>
-                  <p class="text-sm text-slate-500 mt-1">数据来源：routeList.json 与 tramways_main_routes_sc.csv，支持按线路、站点目的地以及任意站点名称检索</p>
+                  <p class="text-sm text-slate-500 mt-1">数据来源：routeList.json 与
+                    tramways_main_routes_sc.csv，支持按线路、站点目的地以及任意站点名称检索</p>
                 </div>
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
                   <div class="flex-1 sm:flex-none sm:w-72">
@@ -120,7 +121,7 @@
               <div v-if="hasMore" class="px-6 py-4 bg-slate-50 flex justify-center">
                 <button @click="loadMore"
                   class="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-slate-200 text-sm text-slate-700 hover:bg-slate-100 transition-colors">
-                  加载更多 (当前 {{ displayedRoutes.length }} / {{ filteredRoutes.length }})
+                  加载更多 (当前 {{ displayedRoutes.length }} / {{ uniqueFilteredRoutes.length }})
                 </button>
               </div>
             </div>
@@ -240,7 +241,8 @@
                 <div v-if="activeOtherRoutesStop === stop.id" class="mt-2 w-full">
                   <div v-if="getOtherRoutesForStop(stop.id).length"
                     class="bg-white border border-slate-200 rounded-lg px-3 py-2 space-y-2">
-                    <div v-for="other in getOtherRoutesForStop(stop.id)" :key="`${stop.id}-${other.route}-${other.company}`"
+                    <div v-for="other in getOtherRoutesForStop(stop.id)"
+                      :key="`${stop.id}-${other.route}-${other.company}`"
                       class="flex flex-wrap items-center gap-2 text-xs text-slate-600">
                       <span
                         class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
@@ -265,8 +267,8 @@
     </n-modal>
     <Teleport to="body">
       <div v-if="showFavoriteMenu" class="fixed inset-0 z-[3500]" @click="closeFavoriteMenu">
-        <div class="absolute bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[170px]" :style="favoriteMenuStyle"
-          @click.stop>
+        <div class="absolute bg-white rounded-lg shadow-xl border border-slate-200 py-2 min-w-[170px]"
+          :style="favoriteMenuStyle" @click.stop>
           <button @click="addFavoriteWithCategory('normal')"
             class="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center text-left">
             <i class="fa fa-star text-yellow-500 mr-2"></i>
@@ -718,11 +720,35 @@ const modalStyle = reactive({
   maxWidth: '90vw',
 })
 
-const totalRoutes = computed(() => allRoutes.value.length)
+const buildRouteDisplayKey = (route) => {
+  const routeId = route.route || route.key || ''
+  const companiesKey = (route.co || []).slice().sort().join('|') || 'unknown'
+  const serviceTypeKey = route.serviceType === undefined || route.serviceType === null
+    ? 'default'
+    : String(route.serviceType)
+  const typeKey = route.type || 'standard'
+  return `${typeKey}__${routeId}__${companiesKey}__${serviceTypeKey}`
+}
+
+const deduplicateRoutesForDisplay = (list) => {
+  const seen = new Set()
+  return list.filter((item) => {
+    const displayKey = buildRouteDisplayKey(item)
+    if (seen.has(displayKey)) {
+      return false
+    }
+    seen.add(displayKey)
+    return true
+  })
+}
+
+const uniqueAllRoutes = computed(() => deduplicateRoutesForDisplay(allRoutes.value))
+
+const totalRoutes = computed(() => uniqueAllRoutes.value.length)
 
 const companyFilterOptions = computed(() => {
   const map = new Map()
-  allRoutes.value.forEach((item) => {
+  uniqueAllRoutes.value.forEach((item) => {
     item.co.forEach((id) => {
       if (!map.has(id)) {
         map.set(id, mapCompany(id))
@@ -739,7 +765,7 @@ const filteredRoutes = computed(() => {
       return false
     }
     if (!keyword) return true
-    
+
     // 检查基本字段
     const basicFieldsMatch = [
       item.route,
@@ -751,9 +777,9 @@ const filteredRoutes = computed(() => {
     ]
       .filter(Boolean)
       .some((field) => field.toLowerCase().includes(keyword))
-    
+
     if (basicFieldsMatch) return true
-    
+
     // 检查站点名称（检查路线的站点列表）
     const companies = item.co || []
     for (const companyId of companies) {
@@ -761,12 +787,12 @@ const filteredRoutes = computed(() => {
       for (const stopId of stopSequence) {
         const stopInfo = stopList.value[stopId]
         if (!stopInfo) continue
-        
+
         const stopNameZh = stopInfo.name?.zh?.toLowerCase()
         const stopNameEn = stopInfo.name?.en?.toLowerCase()
-        
-        if ((stopNameZh && stopNameZh.includes(keyword)) || 
-            (stopNameEn && stopNameEn.includes(keyword))) {
+
+        if ((stopNameZh && stopNameZh.includes(keyword)) ||
+          (stopNameEn && stopNameEn.includes(keyword))) {
           return true
         }
       }
@@ -775,9 +801,11 @@ const filteredRoutes = computed(() => {
   })
 })
 
-const displayedRoutes = computed(() => filteredRoutes.value.slice(0, displayCount.value))
+const uniqueFilteredRoutes = computed(() => deduplicateRoutesForDisplay(filteredRoutes.value))
 
-const hasMore = computed(() => displayCount.value < filteredRoutes.value.length)
+const displayedRoutes = computed(() => uniqueFilteredRoutes.value.slice(0, displayCount.value))
+
+const hasMore = computed(() => displayCount.value < uniqueFilteredRoutes.value.length)
 
 const selectedRoute = computed(() => allRoutes.value.find((item) => item.key === selectedRouteKey.value) || null)
 
