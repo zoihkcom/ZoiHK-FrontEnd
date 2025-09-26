@@ -58,11 +58,23 @@
                   <span class="section-icon"><i class="fa fa-subway"></i></span>
                   <span class="section-label">起点</span>
                 </div>
-                <div class="selector-group">
-                  <n-select v-model:value="selectedStartLine" :options="lineOptions" :disabled="!subwayData"
-                    placeholder="选择线路" @update:value="onStartLineChange" />
-                  <n-select v-model:value="selectedStartPoiid" :options="startStationOptions"
-                    :disabled="!startLineStations.length" placeholder="选择站点" @update:value="onStartStationChange" />
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-2">
+                    <n-auto-complete v-model:value="startSearchKeyword" :options="startSearchOptions" clearable
+                      placeholder="搜索站点" class="w-full" @select="handleStartSearchSelect"
+                      @clear="handleStartSearchClear" />
+                    <n-select v-if="startNeedLineSelection" v-model:value="startPendingLineCode"
+                      :options="startLineChoiceOptions" placeholder="选择线路" size="small" />
+                    <p v-if="startNeedLineSelection" class="text-xs leading-4 text-slate-500">
+                      该站点包含多条线路，请先选择线路。
+                    </p>
+                  </div>
+                  <div class="selector-group">
+                    <n-select v-model:value="selectedStartLine" :options="lineOptions" :disabled="!subwayData"
+                      placeholder="选择线路" @update:value="onStartLineChange" />
+                    <n-select v-model:value="selectedStartPoiid" :options="startStationOptions"
+                      :disabled="!startLineStations.length" placeholder="选择站点" @update:value="onStartStationChange" />
+                  </div>
                 </div>
               </div>
 
@@ -80,11 +92,23 @@
                   <span class="section-icon"><i class="fa fa-map-pin"></i></span>
                   <span class="section-label">终点</span>
                 </div>
-                <div class="selector-group">
-                  <n-select v-model:value="selectedEndLine" :options="lineOptions" :disabled="!subwayData"
-                    placeholder="选择线路" @update:value="onEndLineChange" />
-                  <n-select v-model:value="selectedEndPoiid" :options="endStationOptions"
-                    :disabled="!endLineStations.length" placeholder="选择站点" @update:value="onEndStationChange" />
+                <div class="flex flex-col gap-3">
+                  <div class="flex flex-col gap-2">
+                    <n-auto-complete v-model:value="endSearchKeyword" :options="endSearchOptions" clearable
+                      placeholder="搜索站点" class="w-full" @select="handleEndSearchSelect"
+                      @clear="handleEndSearchClear" />
+                    <n-select v-if="endNeedLineSelection" v-model:value="endPendingLineCode"
+                      :options="endLineChoiceOptions" placeholder="选择线路" size="small" />
+                    <p v-if="endNeedLineSelection" class="text-xs leading-4 text-slate-500">
+                      该站点包含多条线路，请先选择线路。
+                    </p>
+                  </div>
+                  <div class="selector-group">
+                    <n-select v-model:value="selectedEndLine" :options="lineOptions" :disabled="!subwayData"
+                      placeholder="选择线路" @update:value="onEndLineChange" />
+                    <n-select v-model:value="selectedEndPoiid" :options="endStationOptions"
+                      :disabled="!endLineStations.length" placeholder="选择站点" @update:value="onEndStationChange" />
+                  </div>
                 </div>
               </div>
 
@@ -396,13 +420,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import Navbar from '@/components/Navbar.vue'
 import '@/styles/subway.css'
 import { HKMetroQuery } from '@/api/metro-data.js'
 
 // 创建 HKMetroQuery 实例
 const hkMetro = new HKMetroQuery()
+const MAX_SEARCH_RESULTS = 12
+
+const formatStationLabel = (station) => {
+  const zhName = station.stationNameZh || station.stationName || ''
+  const enName = station.stationName && station.stationName !== station.stationNameZh
+    ? station.stationName
+    : ''
+  const lineText = station.lines.length > 1
+    ? '多线路'
+    : (station.lines[0]?.lineNameZh || station.lines[0]?.lineName || '')
+
+  return [zhName, enName, lineText].filter(Boolean).join(' · ')
+}
+
+const formatLineLabel = (line) => {
+  const zhName = line.lineNameZh || line.lineName || ''
+  const enName = line.lineName && line.lineName !== zhName ? line.lineName : ''
+  return [zhName, enName, line.lineCode].filter(Boolean).join(' · ')
+}
+
+const buildSearchOptions = (results) => {
+  return results.slice(0, MAX_SEARCH_RESULTS).map(station => ({
+    label: formatStationLabel(station),
+    value: station.poiid
+  }))
+}
 
 const iframeLoaded = ref(false)
 const iframeError = ref(false)
@@ -432,6 +482,14 @@ const selectedStartLine = ref('')
 const selectedEndLine = ref('')
 const selectedStartPoiid = ref('')
 const selectedEndPoiid = ref('')
+
+// 搜索相关状态
+const startSearchKeyword = ref('')
+const endSearchKeyword = ref('')
+const selectedStartSearchStation = ref(null)
+const selectedEndSearchStation = ref(null)
+const startPendingLineCode = ref('')
+const endPendingLineCode = ref('')
 
 // 站点相关的计算属性
 const startStationName = computed(() => {
@@ -483,6 +541,59 @@ const endStationOptions = computed(() => {
   return endLineStations.value.map(st => ({
     label: st.sp ? `${st.n} (${st.sp})` : st.n,
     value: st.poiid
+  }))
+})
+
+const startSearchResults = computed(() => {
+  if (!startSearchKeyword.value.trim()) return []
+  return hkMetro.searchStations(startSearchKeyword.value.trim())
+})
+
+const endSearchResults = computed(() => {
+  if (!endSearchKeyword.value.trim()) return []
+  return hkMetro.searchStations(endSearchKeyword.value.trim())
+})
+
+const startSearchResultMap = computed(() => {
+  const map = {}
+  startSearchResults.value.forEach(item => {
+    map[item.poiid] = item
+  })
+  return map
+})
+
+const endSearchResultMap = computed(() => {
+  const map = {}
+  endSearchResults.value.forEach(item => {
+    map[item.poiid] = item
+  })
+  return map
+})
+
+const startSearchOptions = computed(() => buildSearchOptions(startSearchResults.value))
+const endSearchOptions = computed(() => buildSearchOptions(endSearchResults.value))
+
+const startNeedLineSelection = computed(() => {
+  return selectedStartSearchStation.value && selectedStartSearchStation.value.lines.length > 1
+})
+
+const endNeedLineSelection = computed(() => {
+  return selectedEndSearchStation.value && selectedEndSearchStation.value.lines.length > 1
+})
+
+const startLineChoiceOptions = computed(() => {
+  if (!startNeedLineSelection.value || !selectedStartSearchStation.value) return []
+  return selectedStartSearchStation.value.lines.map(line => ({
+    label: formatLineLabel(line),
+    value: line.lineCode
+  }))
+})
+
+const endLineChoiceOptions = computed(() => {
+  if (!endNeedLineSelection.value || !selectedEndSearchStation.value) return []
+  return selectedEndSearchStation.value.lines.map(line => ({
+    label: formatLineLabel(line),
+    value: line.lineCode
   }))
 })
 
@@ -557,6 +668,127 @@ const findLineByPoiid = (poiid) => {
   
   return null
 }
+
+const getSubwayLinesContainingPoiid = (poiid) => {
+  if (!subwayData.value || !poiid) return []
+  return subwayData.value.l.filter(line => line.st.some(st => st.poiid === poiid))
+}
+
+const matchSubwayLine = (poiid, lineMeta) => {
+  const candidates = getSubwayLinesContainingPoiid(poiid)
+  if (!candidates.length) return null
+
+  if (lineMeta) {
+    const chineseMatch = candidates.find(line => line.ln === lineMeta.lineNameZh || line.kn === lineMeta.lineNameZh)
+    if (chineseMatch) return chineseMatch
+
+    const englishMatch = candidates.find(line => line.la === lineMeta.lineName || line.kn === lineMeta.lineName)
+    if (englishMatch) return englishMatch
+  }
+
+  return candidates[0]
+}
+
+const applySearchSelection = async (type, station, lineMeta) => {
+  if (!subwayData.value) {
+    console.warn('地铁数据尚未加载完成，无法应用搜索结果')
+    return
+  }
+
+  const matchedLine = matchSubwayLine(station.poiid, lineMeta)
+  if (!matchedLine) {
+    console.warn('未能在地铁图数据中匹配到对应线路', station, lineMeta)
+    return
+  }
+
+  const stationName = station.stationNameZh || station.stationName || ''
+
+  if (type === 'start') {
+    selectedStartLine.value = matchedLine.ls
+    selectedStartPoiid.value = station.poiid
+    startSearchKeyword.value = stationName
+    selectedStartSearchStation.value = null
+    startPendingLineCode.value = ''
+    await nextTick()
+    onStartStationChange()
+  } else {
+    selectedEndLine.value = matchedLine.ls
+    selectedEndPoiid.value = station.poiid
+    endSearchKeyword.value = stationName
+    selectedEndSearchStation.value = null
+    endPendingLineCode.value = ''
+    await nextTick()
+    onEndStationChange()
+  }
+}
+
+const handleStartSearchSelect = async (value) => {
+  const station = startSearchResultMap.value[value]
+  if (!station) return
+
+  startSearchKeyword.value = station.stationNameZh || station.stationName || ''
+
+  if (station.lines.length === 1) {
+    await applySearchSelection('start', station, station.lines[0])
+  } else {
+    selectedStartSearchStation.value = station
+    startPendingLineCode.value = ''
+  }
+}
+
+const handleEndSearchSelect = async (value) => {
+  const station = endSearchResultMap.value[value]
+  if (!station) return
+
+  endSearchKeyword.value = station.stationNameZh || station.stationName || ''
+
+  if (station.lines.length === 1) {
+    await applySearchSelection('end', station, station.lines[0])
+  } else {
+    selectedEndSearchStation.value = station
+    endPendingLineCode.value = ''
+  }
+}
+
+const handleStartSearchClear = () => {
+  startSearchKeyword.value = ''
+  selectedStartSearchStation.value = null
+  startPendingLineCode.value = ''
+}
+
+const handleEndSearchClear = () => {
+  endSearchKeyword.value = ''
+  selectedEndSearchStation.value = null
+  endPendingLineCode.value = ''
+}
+
+watch(startPendingLineCode, async (lineCode) => {
+  if (!lineCode || !selectedStartSearchStation.value) return
+  const targetLine = selectedStartSearchStation.value.lines.find(line => line.lineCode === lineCode)
+  if (!targetLine) return
+  await applySearchSelection('start', selectedStartSearchStation.value, targetLine)
+})
+
+watch(endPendingLineCode, async (lineCode) => {
+  if (!lineCode || !selectedEndSearchStation.value) return
+  const targetLine = selectedEndSearchStation.value.lines.find(line => line.lineCode === lineCode)
+  if (!targetLine) return
+  await applySearchSelection('end', selectedEndSearchStation.value, targetLine)
+})
+
+watch(startSearchKeyword, (value) => {
+  if (!value) {
+    selectedStartSearchStation.value = null
+    startPendingLineCode.value = ''
+  }
+})
+
+watch(endSearchKeyword, (value) => {
+  if (!value) {
+    selectedEndSearchStation.value = null
+    endPendingLineCode.value = ''
+  }
+})
 
 // 为选中的站点显示详情弹窗
 const showStationDetailForSelectedStation = (poiid) => {

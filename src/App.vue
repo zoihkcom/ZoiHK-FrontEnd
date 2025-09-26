@@ -14,7 +14,7 @@ const themeOverrides = {
     borderRadius: '10px'
   },
   Select: {
-    borderRadius: '12px'
+    borderRadius: '10px'
   }
 }
 </script>

@@ -1949,33 +1949,65 @@ class HKMetroQuery {
    * @returns {Array} 匹配的站点信息数组
    */
   searchStations(keyword) {
-    const results = [];
-    const lowerKeyword = keyword.toLowerCase();
+    const normalizedKeyword = typeof keyword === "string" ? keyword.trim() : "";
+    if (!normalizedKeyword) {
+      return [];
+    }
+
+    const lowerKeyword = normalizedKeyword.toLowerCase();
+    const resultMap = new Map();
 
     Object.keys(this.data.lines).forEach((lineCode) => {
       const lineInfo = this.data.lines[lineCode];
       Object.keys(lineInfo.stations).forEach((stationCode) => {
         const station = lineInfo.stations[stationCode];
-        const englishMatch = station.station_name
-          .toLowerCase()
-          .includes(lowerKeyword);
-        const chineseMatch = station.station_name_zh.includes(keyword);
+        const englishName = (station.station_name || "").toLowerCase();
+        const englishMatch = englishName.includes(lowerKeyword);
+        const chineseMatch = (station.station_name_zh || "").includes(normalizedKeyword);
 
-        if (englishMatch || chineseMatch) {
-          results.push({
-            lineCode,
-            lineName: lineInfo.line_name,
-            lineNameZh: lineInfo.line_name_zh,
-            stationCode,
+        if (!englishMatch && !chineseMatch) {
+          return;
+        }
+
+        if (!resultMap.has(station.poiid)) {
+          resultMap.set(station.poiid, {
+            poiid: station.poiid,
             stationName: station.station_name,
             stationNameZh: station.station_name_zh,
-            poiid: station.poiid,
+            lines: [],
           });
         }
+
+        const target = resultMap.get(station.poiid);
+        target.lines.push({
+          lineCode,
+          lineName: lineInfo.line_name,
+          lineNameZh: lineInfo.line_name_zh,
+          stationCode,
+        });
       });
     });
 
-    return results;
+    const results = Array.from(resultMap.values()).map((item) => ({
+      ...item,
+      lines: item.lines.sort((a, b) => {
+        const nameA = a.lineNameZh || a.lineName || "";
+        const nameB = b.lineNameZh || b.lineName || "";
+        return nameA.localeCompare(nameB, "zh-Hans-CN");
+      }),
+    }));
+
+    return results.sort((a, b) => {
+      const zhA = a.stationNameZh || a.stationName || "";
+      const zhB = b.stationNameZh || b.stationName || "";
+      const zhCompare = zhA.localeCompare(zhB, "zh-Hans-CN");
+      if (zhCompare !== 0) {
+        return zhCompare;
+      }
+      const enA = a.stationName || "";
+      const enB = b.stationName || "";
+      return enA.localeCompare(enB);
+    });
   }
 
   /**
