@@ -2,8 +2,6 @@
  * 香港地铁站点数据和查询工具
  * Hong Kong MTR Station Data and Query Utils
  */
-
-// 地铁数据 - 请手动从data.json复制数据到这里
 const METRO_DATA = {
   lines: {
     AEL: {

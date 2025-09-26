@@ -543,6 +543,21 @@ const getStationIdByPoiid = (poiid, lineId) => {
   return station ? station.si : ''
 }
 
+// 根据poiid查找站点所属的线路
+const findLineByPoiid = (poiid) => {
+  if (!subwayData.value || !poiid) return null
+  
+  // 在所有线路中查找该站点
+  for (const line of subwayData.value.l) {
+    const station = line.st.find(s => s.poiid === poiid)
+    if (station) {
+      return line
+    }
+  }
+  
+  return null
+}
+
 // 为选中的站点显示详情弹窗
 const showStationDetailForSelectedStation = (poiid) => {
   // 传递poiid给handleStationDetail处理
@@ -845,6 +860,9 @@ const handleRouteError = () => {
 const handleStationDetail = async (data) => {
   const poiid = data?.poiid
   if (poiid) {
+    // 检查是否已经设置了起点但还没有设置终点
+    const shouldSetAsEndAndPlanRoute = selectedStartPoiid.value && !selectedEndPoiid.value && poiid !== selectedStartPoiid.value
+    
     try {
       // 开始加载
       stationDetailLoading.value = true
@@ -924,12 +942,59 @@ const handleStationDetail = async (data) => {
           currentStation.value = fallbackInfo
         }
       }
+
+      // 4. 如果应该设置为终点并规划路线，则执行相关操作
+      if (shouldSetAsEndAndPlanRoute) {
+        // 查找该站点所属的线路
+        const targetLine = findLineByPoiid(poiid)
+        if (targetLine) {
+          // 设置终点
+          selectedEndLine.value = targetLine.ls
+          selectedEndPoiid.value = poiid
+          
+          // 发送终点设置到iframe
+          if (iframeLoaded.value) {
+            sendMessageToIframe('setEnd', {
+              stationId: getStationIdByPoiid(poiid, targetLine.ls),
+              poiid: poiid,
+              stationName: getStationNameByPoiid(poiid, targetLine.ls)
+            })
+          }
+          
+          // 自动收起搜索栏
+          searchExpanded.value = false
+          
+          // 自动进行路线规划
+          planRoute()
+        }
+      }
     } catch (error) {
       // API获取失败时，使用本地数据构建基本信息
       const stationInfo = createBasicStationInfo(poiid)
       if (stationInfo) {
         currentStation.value = stationInfo
       }
+      
+      // 如果应该设置为终点并规划路线，即使在获取详情失败时也要尝试
+      if (shouldSetAsEndAndPlanRoute) {
+        const targetLine = findLineByPoiid(poiid)
+        if (targetLine) {
+          selectedEndLine.value = targetLine.ls
+          selectedEndPoiid.value = poiid
+          
+          if (iframeLoaded.value) {
+            sendMessageToIframe('setEnd', {
+              stationId: getStationIdByPoiid(poiid, targetLine.ls),
+              poiid: poiid,
+              stationName: getStationNameByPoiid(poiid, targetLine.ls)
+            })
+          }
+          
+          searchExpanded.value = false
+          planRoute()
+        }
+      }
+      
       console.error('获取站点信息错误:', error)
     } finally {
       // 结束加载
