@@ -281,7 +281,10 @@
                     {{ route.route }}
                   </span>
                   <div>
-                    <p class="text-sm font-semibold text-slate-900">{{ route.destLabel || '目的地待获取' }}</p>
+                    <p class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      <i class="fa fa-map-signs text-blue-500"></i>
+                      <span>{{ route.destLabel || '目的地待获取' }}</span>
+                    </p>
                     <p class="text-xs text-slate-500">{{ route.companyLabel }}</p>
                   </div>
                 </div>
