@@ -226,6 +226,11 @@ const routes = [
     name: "NoSmokingAreas",
     component: () => import("../views/NoSmokingAreas.vue"),
   },
+  {
+    path: "/government-news",
+    name: "GovernmentNews",
+    component: () => import("../views/GovernmentNews.vue"),
+  },
 ];
 
 const router = createRouter({

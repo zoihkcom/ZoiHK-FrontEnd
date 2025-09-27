@@ -343,6 +343,15 @@
                   </div>
                 </router-link>
 
+                <router-link to="/government-news"
+                  class="flex items-center gap-3 px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                  <i class="fa fa-newspaper-o w-4 text-blue-600"></i>
+                  <div>
+                    <div class="font-medium">政府新闻公报</div>
+                    <div class="text-xs text-gray-500">香港特区政府最新公告</div>
+                  </div>
+                </router-link>
+
                 <div class="border-t border-gray-100 my-2"></div>
 
                 <router-link to="/store"
@@ -649,6 +658,10 @@
           <router-link to="/no-smoking-areas" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
             <i class="fa fa-ban w-4 text-red-600 mr-2"></i>禁烟区范围
+          </router-link>
+          <router-link to="/government-news" @click="isOpen = false"
+            class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+            <i class="fa fa-newspaper-o w-4 text-blue-600 mr-2"></i>政府新闻公报
           </router-link>
           <router-link to="/store" @click="isOpen = false"
             class="block px-6 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
