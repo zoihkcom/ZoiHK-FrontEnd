@@ -156,26 +156,22 @@
           <div class="text-xs text-slate-400">共 {{ stopDetails.length }} 个站点</div>
         </div>
 
-        <div class="grid sm:grid-cols-2 gap-4 mb-4">
-          <div class="bg-slate-50 rounded-xl p-4">
-            <p class="text-xs text-slate-400 uppercase tracking-widest">服务类型</p>
-            <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.serviceType || 'N/A' }}</p>
-          </div>
-          <div class="bg-slate-50 rounded-xl p-4" v-if="selectedRoute?.jt">
-            <p class="text-xs text-slate-400 uppercase tracking-widest">官方行车时间 (JT)</p>
-            <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.jt }}</p>
-          </div>
-        </div>
-
         <div class="bg-slate-50 rounded-xl p-4 mb-4">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex-1">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+            <div class="flex-1 sm:flex-none sm:w-14">
+              <p class="text-xs text-slate-400 uppercase tracking-widest">服务类型</p>
+              <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.serviceType || 'N/A' }}</p>
+            </div>
+            <div class="flex-1 sm:flex-none sm:w-32 sm:border-l sm:border-slate-200 sm:pl-6">
+              <p class="text-xs text-slate-400 uppercase tracking-widest">官方行车时间</p>
+              <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.jt || '暂无官方数据' }}</p>
+            </div>
+            <div class="flex-1 sm:min-w-[220px] sm:border-l sm:border-slate-200 sm:pl-6">
               <p class="text-xs text-slate-400 uppercase tracking-widest">起点</p>
               <p class="text-base font-semibold text-slate-800 mt-1">{{ selectedRoute?.orig.zh || '未知起点' }}</p>
               <p class="text-xs text-slate-500">{{ selectedRoute?.orig.en || 'Unknown Origin' }}</p>
             </div>
-            <div class="hidden sm:block h-12 w-px bg-slate-200"></div>
-            <div class="flex-1">
+            <div class="flex-1 sm:min-w-[220px] sm:border-l sm:border-slate-200 sm:pl-6">
               <p class="text-xs text-slate-400 uppercase tracking-widest">目的地</p>
               <p class="text-base font-semibold text-slate-800 mt-1">{{ selectedRoute?.dest.zh || '未知目的地' }}</p>
               <p class="text-xs text-slate-500">{{ selectedRoute?.dest.en || 'Unknown Destination' }}</p>
