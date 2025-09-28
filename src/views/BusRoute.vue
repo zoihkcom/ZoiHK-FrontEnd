@@ -130,7 +130,21 @@
       <div class="bg-white rounded-xl p-6 max-h-[80vh] overflow-hidden flex flex-col">
         <div class="flex items-start justify-between mb-4">
           <div>
-            <h2 class="text-2xl font-semibold text-slate-900">{{ selectedRoute?.route }} 路线详情</h2>
+            <h2 class="text-2xl font-semibold text-slate-900 flex items-center gap-2">
+              <span>{{ selectedRoute?.route }} 路线详情</span>
+              <n-tooltip trigger="hover" placement="bottom-start">
+                <template #trigger>
+                  <span
+                    class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-semibold cursor-help">
+                    !
+                  </span>
+                </template>
+                <div class="space-y-1 text-xs text-slate-600">
+                  <p>服务类型：{{ selectedRoute?.serviceType || 'N/A' }}</p>
+                  <p>官方行车时间 (JT)：{{ selectedRoute?.jt || '暂无官方数据' }}</p>
+                </div>
+              </n-tooltip>
+            </h2>
           </div>
           <div class="flex items-center gap-3">
             <button type="button" @click="toggleDirection" :disabled="!hasReverseRoute"
@@ -158,20 +172,12 @@
 
         <div class="bg-slate-50 rounded-xl p-4 mb-4">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-            <div class="flex-1 sm:flex-none sm:w-14">
-              <p class="text-xs text-slate-400 uppercase tracking-widest">服务类型</p>
-              <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.serviceType || 'N/A' }}</p>
-            </div>
-            <div class="flex-1 sm:flex-none sm:w-32 sm:border-l sm:border-slate-200 sm:pl-6">
-              <p class="text-xs text-slate-400 uppercase tracking-widest">官方行车时间</p>
-              <p class="text-base font-semibold text-slate-800 mt-2">{{ selectedRoute?.jt || '暂无官方数据' }}</p>
-            </div>
-            <div class="flex-1 sm:min-w-[220px] sm:border-l sm:border-slate-200 sm:pl-6">
+            <div class="flex-1 sm:min-w-[240px]">
               <p class="text-xs text-slate-400 uppercase tracking-widest">起点</p>
               <p class="text-base font-semibold text-slate-800 mt-1">{{ selectedRoute?.orig.zh || '未知起点' }}</p>
               <p class="text-xs text-slate-500">{{ selectedRoute?.orig.en || 'Unknown Origin' }}</p>
             </div>
-            <div class="flex-1 sm:min-w-[220px] sm:border-l sm:border-slate-200 sm:pl-6">
+            <div class="flex-1 sm:min-w-[240px] sm:border-l sm:border-slate-200 sm:pl-6">
               <p class="text-xs text-slate-400 uppercase tracking-widest">目的地</p>
               <p class="text-base font-semibold text-slate-800 mt-1">{{ selectedRoute?.dest.zh || '未知目的地' }}</p>
               <p class="text-xs text-slate-500">{{ selectedRoute?.dest.en || 'Unknown Destination' }}</p>
@@ -321,7 +327,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import { NInput, NModal, NSelect } from 'naive-ui'
+import { NInput, NModal, NSelect, NTooltip } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 import { fetchEtas } from 'hk-bus-eta'
