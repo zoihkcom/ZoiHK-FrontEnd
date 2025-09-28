@@ -35,7 +35,6 @@ const categoryEndpointMap = {
 export const fetchGovernmentNews = async (categoryKey = 'general') => {
   try {
     const endpoint = categoryEndpointMap[categoryKey] || categoryEndpointMap.general
-    console.log(`📡 Calling ${endpoint} endpoint...`)
 
     const response = await request.get(endpoint, {
       headers: {
@@ -44,7 +43,6 @@ export const fetchGovernmentNews = async (categoryKey = 'general') => {
     })
 
     const xmlData = response.data
-    console.log('✅ Received XML data from backend, length:', xmlData?.length)
 
     if (!xmlData || xmlData.length === 0) {
       throw new Error('Empty XML data received from backend')
@@ -123,17 +121,14 @@ const extractImageUrls = (item, rawDescription = '') => {
 
 export const parseRSSData = (rssString) => {
   try {
-    console.log('🔍 Starting RSS parsing...')
-    console.log('RSS string length:', rssString.length)
-    
     if (!rssString || rssString.length === 0) {
       throw new Error('Empty RSS string provided')
     }
-    
+
     // 简单的RSS解析函数
     const parser = new DOMParser()
     const xmlDoc = parser.parseFromString(rssString, 'text/xml')
-    
+
     // 检查解析错误
     const parseError = xmlDoc.querySelector('parsererror')
     if (parseError) {
@@ -142,7 +137,6 @@ export const parseRSSData = (rssString) => {
     }
     
     const items = xmlDoc.querySelectorAll('item')
-    console.log('Found items:', items.length)
     
     if (items.length === 0) {
       console.warn('No items found in RSS')
