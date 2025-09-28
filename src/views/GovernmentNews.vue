@@ -9,7 +9,34 @@
           <h1 class="text-4xl sm:text-5xl font-bold text-slate-900">香港特区政府新闻公报</h1>
           <p class="text-base sm:text-lg text-slate-600">获取最新的政府公告和政策信息</p>
 
-          <div class="flex flex-col items-center gap-4">
+          <div class="flex flex-col items-center gap-5">
+            <div class="flex flex-wrap justify-center gap-2 sm:gap-3">
+              <button
+                v-for="category in categories"
+                :key="category.key"
+                type="button"
+                :aria-pressed="selectedCategoryKey === category.key"
+                @click="handleCategorySelect(category.key)"
+                :class="[
+                  'px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2',
+                  selectedCategoryKey === category.key
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg hover:bg-blue-700 focus:ring-blue-500'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400 hover:text-blue-600 focus:ring-blue-200'
+                ]"
+              >
+                <span>{{ category.label }}</span>
+                <span
+                  v-if="category.subLabel"
+                  :class="[
+                    'ml-2 text-xs',
+                    selectedCategoryKey === category.key ? 'text-blue-100' : 'text-slate-400'
+                  ]"
+                >
+                  {{ category.subLabel }}
+                </span>
+              </button>
+            </div>
+
             <button @click="refreshData" :disabled="loading"
               class="group inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl gap-2">
               <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
@@ -26,8 +53,8 @@
               <span>{{ loading ? '刷新中...' : '刷新新闻' }}</span>
             </button>
 
-            <div v-if="newsData && newsData.length > 0" class="text-sm text-slate-500">
-              最后更新：{{ formatUpdateTime(newsData[0].publishedAt) }}
+            <div v-if="newsData && newsData.length > 0" class="text-sm text-slate-500 text-center">
+              最后更新（{{ selectedCategory?.label || '当前分类' }}）：{{ formatUpdateTime(newsData[0].publishedAt) }}
             </div>
           </div>
         </div>
@@ -147,7 +174,7 @@
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         
         <!-- 弹窗内容 -->
-        <div class="relative z-10 inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full" @click.stop>
+        <div class="relative z-10 inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl md:max-w-4xl w-full" @click.stop>
           <!-- 弹窗头部 -->
           <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="flex items-start justify-between">
@@ -176,11 +203,38 @@
 
           <!-- 弹窗内容 -->
           <div class="bg-gray-50 px-4 py-5 sm:p-6">
-            <div class="bg-white rounded-lg p-4">
-              <h4 class="text-base font-medium text-gray-900 mb-3">新闻内容</h4>
-              <div class="max-h-96 overflow-y-auto">
-                <div class="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
-                  {{ selectedNews.description || '暂无详细内容' }}
+            <div class="bg-white rounded-lg p-4 space-y-4">
+              <div v-if="modalImages.length" class="rounded-lg border border-slate-200 overflow-hidden">
+                <NCarousel
+                  :show-arrow="modalImages.length > 1"
+                  :loop="modalImages.length > 1"
+                  :autoplay="modalImages.length > 1"
+                  :draggable="modalImages.length > 1"
+                  trigger="hover"
+                  dot-type="line"
+                  class="bg-slate-100"
+                >
+                  <div
+                    v-for="(imageUrl, imageIndex) in modalImages"
+                    :key="`${selectedNews.id}-image-${imageIndex}-${imageUrl}`"
+                    class="w-full h-full flex items-center justify-center bg-slate-100"
+                  >
+                    <img
+                      :src="imageUrl"
+                      :alt="`${selectedNews.title} - 圖片 ${imageIndex + 1}`"
+                      class="w-full h-full object-contain max-h-96"
+                      loading="lazy"
+                    />
+                  </div>
+                </NCarousel>
+              </div>
+
+              <div>
+                <h4 class="text-base font-medium text-gray-900 mb-3">新闻内容</h4>
+                <div class="max-h-96 overflow-y-auto pr-1">
+                  <div class="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
+                    {{ selectedNews.description || '暂无详细内容' }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -206,31 +260,57 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { NCarousel } from 'naive-ui'
 import Navbar from '@/components/Navbar.vue'
-import { fetchGovernmentNews, parseRSSData } from '@/api/government-news.js'
+import { fetchGovernmentNews, parseRSSData, newsCategories } from '@/api/government-news.js'
 
+const categories = newsCategories
+const selectedCategoryKey = ref(categories[0]?.key || '')
+const categoryCache = ref({})
 const newsData = ref(null)
 const loading = ref(false)
 const error = ref('')
 const selectedNews = ref(null)
 let refreshInterval = null
 
-const fetchNewsData = async () => {
+const fetchNewsData = async (categoryKey = selectedCategoryKey.value, options = {}) => {
+  const { force = false } = options
+
+  if (!categoryKey) {
+    newsData.value = []
+    error.value = ''
+    loading.value = false
+    return
+  }
+
+  // 使用缓存数据直接渲染，避免重复请求
+  if (!force && categoryCache.value[categoryKey]) {
+    newsData.value = categoryCache.value[categoryKey]
+    error.value = ''
+    loading.value = false
+    return
+  }
+
+  if (!force && !categoryCache.value[categoryKey]) {
+    newsData.value = null
+  }
+
   try {
     loading.value = true
     error.value = ''
 
-    // 调用后端接口获取RSS XML数据
-    const rssData = await fetchGovernmentNews()
-    
-    // 前端解析RSS数据
+    const rssData = await fetchGovernmentNews(categoryKey)
     const parsedData = parseRSSData(rssData)
-    
-    newsData.value = Array.isArray(parsedData) ? parsedData : []
+    const normalizedData = Array.isArray(parsedData) ? parsedData : []
 
+    categoryCache.value = {
+      ...categoryCache.value,
+      [categoryKey]: normalizedData
+    }
+
+    newsData.value = normalizedData
   } catch (err) {
     error.value = `获取新闻数据失败: ${err.message}`
-    // 异常时不再使用模拟数据
     newsData.value = []
   } finally {
     loading.value = false
@@ -238,7 +318,7 @@ const fetchNewsData = async () => {
 }
 
 const refreshData = () => {
-  fetchNewsData()
+  fetchNewsData(selectedCategoryKey.value, { force: true })
 }
 
 const formatUpdateTime = (date) => {
@@ -305,6 +385,23 @@ const filteredNews = computed(() => {
   return newsData.value
 })
 
+const selectedCategory = computed(() => {
+  return categories.find(category => category.key === selectedCategoryKey.value) || null
+})
+
+const modalImages = computed(() => {
+  if (!selectedNews.value) return []
+  const images = Array.isArray(selectedNews.value.images) ? selectedNews.value.images : []
+  if (images.length > 0) return images
+  return selectedNews.value.image ? [selectedNews.value.image] : []
+})
+
+const handleCategorySelect = (categoryKey) => {
+  if (selectedCategoryKey.value === categoryKey) return
+  selectedCategoryKey.value = categoryKey
+  fetchNewsData(categoryKey)
+}
+
 // 打开新闻详情弹窗
 const openNewsModal = (news) => {
   selectedNews.value = news
@@ -325,9 +422,9 @@ const openOriginalLink = (link) => {
 }
 
 onMounted(() => {
-  fetchNewsData()
+  fetchNewsData(selectedCategoryKey.value, { force: true })
   refreshInterval = setInterval(() => {
-    fetchNewsData()
+    fetchNewsData(selectedCategoryKey.value, { force: true })
   }, 10 * 60 * 1000) // 10 minutes
 })
 
